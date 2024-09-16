@@ -13,6 +13,7 @@ dependencies = [
     "jax>=0.2.34",
     "jaxtyping",
     "optax>=0.2.3",
+    "pdoc3>=0.11.1",
     "torch>=0.8.10",
     "torchvision>=0.19.1",
     "tyro",
@@ -24,3 +25,6 @@ build-backend = "hatchling.build"
 
 [tool.ruff.lint]
 ignore = ["F722"]
+
+[tool.isort]
+profile = "black"
