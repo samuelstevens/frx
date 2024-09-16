@@ -20,8 +20,6 @@ from jaxtyping import Array, Float, Int, jaxtyped
 
 import frx
 
-IMAGENET_CHANNEL_MEAN = (0.4632, 0.4800, 0.3762)
-IMAGENET_CHANNEL_STD = (0.2375, 0.2291, 0.2474)
 
 log_format = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_format)
@@ -115,7 +113,9 @@ def make_dataloader(args: Args, dataset, *, is_train: bool):
     common_transforms = [
         transforms.PILToTensor(),
         transforms.ConvertImageDtype(torch.float32),
-        transforms.Normalize(mean=IMAGENET_CHANNEL_MEAN, std=IMAGENET_CHANNEL_STD),
+        transforms.Normalize(
+            mean=frx.IMAGENET_CHANNEL_MEAN, std=frx.IMAGENET_CHANNEL_STD
+        ),
     ]
     transform.extend(common_transforms)
     transform = transforms.Compose(transform)
@@ -128,7 +128,11 @@ def make_dataloader(args: Args, dataset, *, is_train: bool):
         example["image"] = transform(example["image"])
         return example
 
-    dataset = dataset.to_iterable_dataset().map(hf_transform).with_format("torch")
+    dataset = (
+        dataset.to_iterable_dataset(num_shards=args.n_workers)
+        .map(hf_transform)
+        .with_format("torch")
+    )
 
     collate_fn = (
         DataloaderMixup(args)
@@ -140,9 +144,9 @@ def make_dataloader(args: Args, dataset, *, is_train: bool):
         dataset=dataset,
         batch_size=args.batch_size,
         drop_last=drop_last,
-        num_workers=min(args.n_workers, dataset.n_shards),
+        num_workers=args.n_workers,
         pin_memory=args.pin_memory,
-        persistent_workers=min(args.n_workers, dataset.n_shards) > 0,
+        persistent_workers=args.n_workers > 0 and is_train,
         shuffle=False,  # We use dataset.shuffle instead
         collate_fn=collate_fn,
     )
@@ -269,10 +273,10 @@ def main(args: Args):
     }
 
     # 3. Train
-    n_steps_per_epoch = int(len(train_dataset) / args.batch_size / args.grad_accum)
+    n_steps_per_epoch = int(len(train_dataset) / args.batch_size)
     n_steps = n_steps_per_epoch * args.n_epochs
     lr_schedule = optax.schedules.warmup_cosine_decay_schedule(
-        0.0, args.learning_rate, args.n_warmup_steps, n_steps
+        0.0, args.learning_rate, args.n_warmup_steps, n_steps // args.grad_accum
     )
     optim = optax.adamw(
         learning_rate=lr_schedule,

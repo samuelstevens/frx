@@ -3,6 +3,20 @@ import dataclasses
 import beartype
 
 
+#############
+# Constants #
+#############
+
+
+IMAGENET_CHANNEL_MEAN = (0.4632, 0.4800, 0.3762)
+IMAGENET_CHANNEL_STD = (0.2375, 0.2291, 0.2474)
+
+
+#############
+# Functions #
+#############
+
+
 @beartype.beartype
 def to_aim_value(value: object):
     """
