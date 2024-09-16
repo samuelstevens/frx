@@ -20,7 +20,6 @@ from jaxtyping import Array, Float, Int, jaxtyped
 
 import frx
 
-
 log_format = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
 logging.basicConfig(level=logging.INFO, format=log_format)
 logger = logging.getLogger("train")
@@ -207,7 +206,7 @@ def evaluate(model: eqx.Module, dataloader, key: chex.PRNGKey) -> dict[str, obje
     ) -> tuple[Float[Array, ""], Float[Array, "b n_classes"]]:
         logits = jax.vmap(model, in_axes=(0, None, 0))(images, True, jnp.array(subkeys))
         loss = optax.softmax_cross_entropy_with_integer_labels(logits, labels).mean()
-        return loss.item(), logits
+        return loss, logits
 
     metrics = {"loss": []}
 
@@ -296,6 +295,8 @@ def main(args: Args):
         run = aim.Run(experiment="train")
         run["hparams"] = {k: frx.to_aim_value(v) for k, v in vars(args).items()}
         run["hparams"]["cmd"] = " ".join([sys.executable] + sys.argv)
+    else:
+        run = frx.DummyAimRun()
 
     os.makedirs(args.ckpt_dir, exist_ok=True)
 
@@ -330,8 +331,7 @@ def main(args: Args):
                     "learning_rate": lr_schedule(global_step // args.grad_accum).item(),
                     "mfu": flops_per_iter / dt / flops_promised,
                 }
-                if args.track:
-                    run.track(metrics, step=global_step)
+                run.track(metrics, step=global_step)
                 logger.info(
                     "step: %d, loss: %.5f, step/sec: %.1f",
                     global_step,
@@ -357,11 +357,12 @@ def main(args: Args):
             logger.info("Evaluating %s.", name)
             metrics = evaluate(model, dataloader, subkey)
             metrics = {f"{name}_{key}": value for key, value in metrics.items()}
-            if args.track:
-                run.track(metrics, step=global_step)
+            run.track(metrics, step=global_step)
             logger.info(
                 ", ".join(f"{key}: {value:.3f}" for key, value in metrics.items()),
             )
+        # Record epoch at this step only once.
+        run.track({"epoch": epoch}, step=global_step)
 
         # Checkpoint.
         save(os.path.join(args.ckpt_dir, f"{run.hash}_ep{epoch}.eqx"), model_cfg, model)

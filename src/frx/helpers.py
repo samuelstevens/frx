@@ -2,7 +2,6 @@ import dataclasses
 
 import beartype
 
-
 #############
 # Constants #
 #############
@@ -50,3 +49,16 @@ def to_aim_value(value: object):
         pass
 
     raise ValueError(f"Could not convert value '{value}' to Aim-compatible value.")
+
+
+###########
+# Classes #
+###########
+
+
+class DummyAimRun:
+    def __init__(self, *args, **kwargs):
+        self.hash = "dummy-run-hash"
+
+    def track(self, metrics: dict[str, object], step: int):
+        pass
