@@ -12,6 +12,7 @@ import datasets
 import equinox as eqx
 import jax
 import jax.numpy as jnp
+import jax.experimental.mesh_utils as mesh_utils
 import optax
 import torch
 import torchvision.transforms.v2 as transforms
@@ -29,6 +30,10 @@ logger = logging.getLogger("train")
 @dataclasses.dataclass(frozen=True)
 class Args:
     seed: int = 42
+
+    # Model
+    p_dropout: float = 0.2
+    """dropout probability."""
 
     # Data
     resize_size: int = 256
@@ -159,8 +164,7 @@ def save(filename, cfg, model):
 
 
 @jaxtyped(typechecker=beartype.beartype)
-@eqx.filter_value_and_grad
-def compute_grads(
+def compute_loss(
     model: eqx.Module,
     images: Float[Array, "batch 3 width height"],
     labels: Float[Array, "batch n_class"],
@@ -174,7 +178,7 @@ def compute_grads(
 
 
 @jaxtyped(typechecker=beartype.beartype)
-@eqx.filter_jit
+@eqx.filter_jit(donate="all")
 def step_model(
     model: eqx.Module,
     optim: optax.GradientTransformation | optax.MultiSteps,
@@ -184,7 +188,9 @@ def step_model(
     *,
     keys: list[chex.PRNGKey],
 ):
-    loss, grads = compute_grads(model, images, labels, keys=keys)
+    loss, grads = eqx.filter_value_and_grad(compute_loss)(
+        model, images, labels, keys=keys
+    )
     updates, new_state = optim.update(grads, state, model)
 
     model = eqx.apply_updates(model, updates)
@@ -197,7 +203,7 @@ def evaluate(model: eqx.Module, dataloader, key: chex.PRNGKey) -> dict[str, obje
     """ """
 
     @jaxtyped(typechecker=beartype.beartype)
-    @eqx.filter_jit
+    @eqx.filter_jit(donate="all-except-first")
     def _compute_loss(
         model: eqx.Module,
         images: Float[Array, "b 3 w h"],
@@ -242,7 +248,7 @@ def main(args: Args):
         hidden_d=1_536,
         n_heads=6,
         n_layers=12,
-        p_dropout=0.2,
+        p_dropout=args.p_dropout,
         patch_size=16,
         n_patches=196,
         n_classes=args.n_classes,
@@ -260,16 +266,17 @@ def main(args: Args):
     val_dataset = datasets.load_dataset(
         "ILSVRC/imagenet-1k", split="validation", trust_remote_code=True
     )
-    v2_dataset = datasets.load_dataset(
-        "imagefolder", data_dir=args.v2_dir, split="train"
-    )
 
     train_dataloader = make_dataloader(args, train_dataset, is_train=True)
     val_dataloaders = {
         "minival": make_dataloader(args, minival_dataset, is_train=False),
         "val": make_dataloader(args, val_dataset, is_train=False),
-        "v2": make_dataloader(args, v2_dataset, is_train=False),
     }
+    if args.v2_dir:
+        v2_dataset = datasets.load_dataset(
+            "imagefolder", data_dir=args.v2_dir, split="train"
+        )
+        val_dataloaders["v2"] = make_dataloader(args, v2_dataset, is_train=False)
 
     # 3. Train
     n_steps_per_epoch = int(len(train_dataset) / args.batch_size)
@@ -290,7 +297,22 @@ def main(args: Args):
 
     state = optim.init(eqx.filter(model, eqx.is_inexact_array))
 
-    # 4. Logging and checkpointing
+    # 4. Multi-device training
+    n_devices = len(jax.local_devices())
+    # Image batches have four dimensions: batch x channels x width x height. We want to
+    # split the batch dimension up over all devices. The same applies to labels, but
+    # they only have batch x classes
+    image_sharding = jax.sharding.PositionalSharding(
+        mesh_utils.create_device_mesh((n_devices, 1, 1, 1))
+    )
+    label_sharding = jax.sharding.PositionalSharding(
+        mesh_utils.create_device_mesh((n_devices, 1))
+    )
+    # We replicate() the sharding because we want an exact copy of the model and
+    # optimizer state on each device.
+    model, state = eqx.filter_shard((model, state), image_sharding.replicate())
+
+    # 5. Logging and checkpointing
     if args.track:
         run = aim.Run(experiment="train")
         run["hparams"] = {k: frx.to_aim_value(v) for k, v in vars(args).items()}
@@ -314,8 +336,8 @@ def main(args: Args):
             t1 = time.time()
             key, *subkeys = jax.random.split(key, num=args.batch_size + 1)
 
-            images = jnp.asarray(batch["image"])
-            labels = jnp.asarray(batch["label"])
+            images = eqx.filter_shard(jnp.asarray(batch["image"]), image_sharding)
+            labels = eqx.filter_shard(jnp.asarray(batch["label"]), label_sharding)
 
             model, state, loss = step_model(
                 model, optim, state, images, labels, keys=subkeys
@@ -333,7 +355,7 @@ def main(args: Args):
                 }
                 run.track(metrics, step=global_step)
                 logger.info(
-                    "step: %d, loss: %.5f, step/sec: %.1f",
+                    "step: %d, loss: %.5f, step/sec: %.2f",
                     global_step,
                     loss.item(),
                     step_per_sec,
