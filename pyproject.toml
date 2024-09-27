@@ -31,3 +31,9 @@ ignore = ["F722"]
 
 [tool.isort]
 profile = "black"
+
+[tool.uv]
+dev-dependencies = [
+    "isort>=5.13.2",
+    "ruff>=0.6.5",
+]

@@ -11,8 +11,8 @@ import chex
 import datasets
 import equinox as eqx
 import jax
-import jax.numpy as jnp
 import jax.experimental.mesh_utils as mesh_utils
+import jax.numpy as jnp
 import optax
 import torch
 import torchvision.transforms.v2 as transforms
@@ -34,6 +34,12 @@ class Args:
     # Model
     p_dropout: float = 0.2
     """dropout probability."""
+    model_d: int = 128
+    """hidden dimension of ViT."""
+    n_layers: int = 6
+    """number of transformer layers."""
+    init_std: float = 0.02
+    """std dev of normal distribution for weight initialization."""
 
     # Data
     resize_size: int = 256
@@ -42,7 +48,7 @@ class Args:
     """after resize, how big an image to crop."""
     n_classes: int = 1_000
     """number of classes (1000 for ImageNet-1K)."""
-    v2_dir: str = "."
+    v2_dir: str = ""
     """Where ImageNet-V2 is stored."""
     batch_size: int = 256
     """train and evaluation batch size."""
@@ -58,12 +64,19 @@ class Args:
     beta1: float = 0.9
     beta2: float = 0.999
     grad_clip: float = 1.0
+    """maximum gradient norm. `0` implies no clipping."""
     grad_accum: int = 1
     """number of steps to accumulate gradients for. `1` implies no accumulation."""
     weight_decay: float = 0.0001
     n_warmup_steps: int = 10_000
     n_epochs: int = 90
     """number of epochs to train for."""
+
+    # muP
+    do_mup: bool = True
+    """Apply muP init, learning rate scaling, and QK head scaling."""
+    mup_base_d: int = 128
+    """what the original d was."""
 
     # Logging
     log_every: int = 10
@@ -191,7 +204,7 @@ def step_model(
     loss, grads = eqx.filter_value_and_grad(compute_loss)(
         model, images, labels, keys=keys
     )
-    updates, new_state = optim.update(grads, state, model)
+    (updates,), new_state = optim.update([grads], state, [model])
 
     model = eqx.apply_updates(model, updates)
 
@@ -244,16 +257,26 @@ def main(args: Args):
 
     # 1. Model
     model_cfg = dict(
-        d=384,
-        hidden_d=1_536,
-        n_heads=6,
-        n_layers=12,
+        d=args.model_d,
+        hidden_d=args.model_d * 4,
+        n_heads=16,
+        n_layers=args.n_layers,
         p_dropout=args.p_dropout,
         patch_size=16,
         n_patches=196,
         n_classes=args.n_classes,
     )
-    model = frx.VisionTransformer(**model_cfg, key=model_key)
+    if args.do_mup:
+        model = frx.VisionTransformerMuP(**model_cfg, key=model_key)
+    else:
+        model = frx.VisionTransformer(**model_cfg, key=model_key)
+
+    if args.do_mup:
+        key, model_key = jax.random.split(key)
+        model = frx.mup.init(
+            model, std=args.init_std, m_d=args.model_d / args.mup_base_d, key=model_key
+        )
+    logger.info("Initialized model.")
 
     # 2. Dataset
     dataset = datasets.load_dataset(
@@ -277,6 +300,7 @@ def main(args: Args):
             "imagefolder", data_dir=args.v2_dir, split="train"
         )
         val_dataloaders["v2"] = make_dataloader(args, v2_dataset, is_train=False)
+    logger.info("Loaded %d dataloaders.", len(val_dataloaders) + 1)
 
     # 3. Train
     n_steps_per_epoch = int(len(train_dataset) / args.batch_size)
@@ -290,12 +314,44 @@ def main(args: Args):
         b2=args.beta2,
         weight_decay=args.weight_decay,
     )
+
+    if args.do_mup:
+        param_labels = jax.tree.map(
+            lambda _: "hidden", eqx.filter(model, eqx.is_inexact_array)
+        )
+        param_labels = eqx.tree_at(
+            lambda m: m.patch_embedding.linear.weight, param_labels, "embedding"
+        )
+        param_labels = eqx.tree_at(
+            lambda m: m.patch_embedding.linear.bias, param_labels, "embedding"
+        )
+        param_labels = eqx.tree_at(lambda m: m.pos_embedding, param_labels, "embedding")
+
+        # Make a new optimizer for hidden (non-embedding) params that scales learning rate by 1/m_d.
+        hidden_adamw = optax.adamw(
+            learning_rate=optax.schedules.warmup_cosine_decay_schedule(
+                0.0,
+                args.learning_rate / (args.model_d / args.mup_base_d),
+                args.n_warmup_steps,
+                n_steps // args.grad_accum,
+            ),
+            b1=args.beta1,
+            b2=args.beta2,
+            weight_decay=args.weight_decay,
+        )
+        optim = optax.multi_transform(
+            {"hidden": hidden_adamw, "embedding": optim}, [param_labels]
+        )
+
     if args.grad_clip > 0:
+        if args.do_mup:
+            logger.warning("Gradient clipping with muP likely doesn't work.")
         optim = optax.chain(optim, optax.clip_by_global_norm(args.grad_clip))
     if args.grad_accum > 1:
         optim = optax.MultiSteps(optim, every_k_schedule=args.grad_accum)
 
-    state = optim.init(eqx.filter(model, eqx.is_inexact_array))
+    state = optim.init(eqx.filter([model], eqx.is_inexact_array))
+    logger.info("Initialized optimizer.")
 
     # 4. Multi-device training
     n_devices = len(jax.local_devices())

@@ -1,3 +1,5 @@
+import math
+
 import beartype
 import chex
 import einops
@@ -124,10 +126,81 @@ class VisionTransformer(eqx.Module):
     ) -> Float[Array, " n_classes"]:
         x = self.patch_embedding(x)
         x += self.pos_embedding[: x.shape[0]]
-        dropout_key, *attn_keys = jax.random.split(key, self.n_layers)
+        dropout_key, *attn_keys = jax.random.split(key, self.n_layers + 1)
         x = self.dropout(x, inference=inference, key=dropout_key)
         for block, attn_key in zip(self.attn_blocks, attn_keys):
             x = block(x, inference, key=attn_key)
         x = jnp.mean(x, axis=0)
         x = self.head(x)
         return x
+
+
+@jaxtyped(typechecker=beartype.beartype)
+class AttentionBlockMuP(AttentionBlock):
+    """
+    Exact same as an `AttentionBlock` but further scales Q by 1/sqrt(d) so that QK is scaled by 1/d instead of just 1/sqrt(d).
+    """
+
+    def __call__(
+        self, x: Float[Array, "n_patches d"], inference: bool, key: chex.PRNGKey
+    ) -> Float[Array, "n_patches d"]:
+        key1, key2 = jax.random.split(key)
+
+        def process_heads(
+            query_heads: Float[Array, "seq_length num_heads qk_size"],
+            key_heads: Float[Array, "seq_length num_heads qk_size"],
+            value_heads: Float[Array, "seq_length num_heads vo_size"],
+        ) -> tuple[
+            Float[Array, "seq_length num_heads qk_size"],
+            Float[Array, "seq_length num_heads qk_size"],
+            Float[Array, "seq_length num_heads vo_size"],
+        ]:
+            query_heads = query_heads / math.sqrt(query_heads.shape[-1])
+
+            return query_heads, key_heads, value_heads
+
+        x_ = jax.vmap(self.layer_norm1)(x)
+        x = x + self.attn(x_, x_, x_, process_heads=process_heads)
+
+        x_ = jax.vmap(self.layer_norm2)(x)
+        x_ = jax.vmap(self.linear1)(x_)
+        x_ = jax.nn.gelu(x_)
+
+        x_ = self.dropout1(x_, inference=inference, key=key1)
+        x_ = jax.vmap(self.linear2)(x_)
+        x_ = self.dropout2(x_, inference=inference, key=key2)
+
+        x = x + x_
+        return x
+
+
+@jaxtyped(typechecker=beartype.beartype)
+class VisionTransformerMuP(VisionTransformer):
+    """
+    Exact same as an `VisionTransformer` but uses `AttentionBlockMuP` instead of `AttentionBlock`.
+    """
+
+    def __init__(
+        self,
+        d: int,
+        hidden_d: int,
+        n_heads: int,
+        n_layers: int,
+        p_dropout: float,
+        patch_size: int,
+        n_patches: int,
+        n_classes: int,
+        *,
+        key: chex.PRNGKey,
+    ):
+        key1, key2, key3, key4 = jax.random.split(key, 4)
+        self.patch_embedding = PatchEmbedding(3, d, patch_size, key=key1)
+        self.pos_embedding = jax.random.normal(key2, (n_patches + 1, d))
+        self.dropout = eqx.nn.Dropout(p_dropout)
+
+        self.n_layers = n_layers
+        self.attn_blocks = [
+            AttentionBlockMuP(d, hidden_d, n_heads, p_dropout, key=key_)
+            for key_ in jax.random.split(key3, self.n_layers)
+        ]
+        self.head = eqx.nn.Linear(d, n_classes, key=key4)
