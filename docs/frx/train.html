@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.1">
-<title>train API documentation</title>
+<title>frx.train API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -24,7 +24,7 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>train</code></h1>
+<h1 class="title">Module <code>frx.train</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -35,38 +35,38 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="train.compute_loss"><code class="name flex">
+<dt id="frx.train.compute_loss"><code class="name flex">
 <span>def <span class="ident">compute_loss</span></span>(<span>model: equinox._module.Module, images: jaxtyping.Float[Array, 'batch 3 width height'], labels: jaxtyping.Float[Array, 'batch n_class'], *, keys: list[jax.Array])</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.evaluate"><code class="name flex">
+<dt id="frx.train.evaluate"><code class="name flex">
 <span>def <span class="ident">evaluate</span></span>(<span>model: equinox._module.Module, dataloader, key: jax.Array) ‑> dict[str, object]</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.main"><code class="name flex">
-<span>def <span class="ident">main</span></span>(<span>args: <a title="train.Args" href="#train.Args">Args</a>)</span>
+<dt id="frx.train.make_dataloader"><code class="name flex">
+<span>def <span class="ident">make_dataloader</span></span>(<span>args: <a title="frx.train.Args" href="#frx.train.Args">Args</a>, dataset, *, is_train: bool)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.make_dataloader"><code class="name flex">
-<span>def <span class="ident">make_dataloader</span></span>(<span>args: <a title="train.Args" href="#train.Args">Args</a>, dataset, *, is_train: bool)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="train.save"><code class="name flex">
+<dt id="frx.train.save"><code class="name flex">
 <span>def <span class="ident">save</span></span>(<span>filename, cfg, model)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.step_model"><code class="name flex">
+<dt id="frx.train.step_model"><code class="name flex">
 <span>def <span class="ident">step_model</span></span>(<span>model: equinox._module.Module, optim: optax._src.base.GradientTransformation | optax.transforms._accumulation.MultiSteps, state: Union[jax.Array, numpy.ndarray, numpy.bool, numpy.number, Iterable[ForwardRef('ArrayTree')], Mapping[Any, ForwardRef('ArrayTree')], optax.transforms._accumulation.MultiStepsState], images: jaxtyping.Float[Array, 'batch 3 width height'], labels: jaxtyping.Float[Array, 'batch n_class'], *, keys: list[jax.Array])</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.train.train"><code class="name flex">
+<span>def <span class="ident">train</span></span>(<span>args: <a title="frx.train.Args" href="#frx.train.Args">Args</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -76,12 +76,12 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="train.Args"><code class="flex name class">
+<dt id="frx.train.Args"><code class="flex name class">
 <span>class <span class="ident">Args</span></span>
-<span>(</span><span>seed: int = 42, p_dropout: float = 0.2, model_d: int = 128, n_layers: int = 6, init_std: float = 0.02, resize_size: int = 256, crop_size: int = 224, n_classes: int = 1000, v2_dir: str = '', batch_size: int = 256, n_workers: int = 4, p_mixup: float = 0.2, pin_memory: bool = False, learning_rate: float = 0.001, beta1: float = 0.9, beta2: float = 0.999, grad_clip: float = 1.0, grad_accum: int = 1, weight_decay: float = 0.0001, n_warmup_steps: int = 10000, n_epochs: int = 90, do_mup: bool = True, mup_base_d: int = 128, log_every: int = 10, track: bool = True, ckpt_dir: str = './checkpoints')</span>
+<span>(</span><span>seed: int = 42, p_dropout: float = 0.2, model_d: int = 128, n_layers: int = 6, init_std: float = 0.02, resize_size: int = 256, crop_size: int = 224, n_classes: int = 1000, v2_dir: str = '', batch_size: int = 256, n_workers: int = 4, p_mixup: float = 0.2, pin_memory: bool = False, learning_rate: float = 0.001, beta1: float = 0.9, beta2: float = 0.999, grad_clip: float = 1.0, grad_accum: int = 1, weight_decay: float = 0.0001, n_warmup_steps: int = 10000, n_epochs: int = 90, do_mup: bool = True, mup_base_d: int = 128, log_every: int = 10, track: bool = True, ckpt_dir: str = './checkpoints', tags: list[str] = &lt;factory&gt;)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Args(seed: int = 42, p_dropout: float = 0.2, model_d: int = 128, n_layers: int = 6, init_std: float = 0.02, resize_size: int = 256, crop_size: int = 224, n_classes: int = 1000, v2_dir: str = '', batch_size: int = 256, n_workers: int = 4, p_mixup: float = 0.2, pin_memory: bool = False, learning_rate: float = 0.001, beta1: float = 0.9, beta2: float = 0.999, grad_clip: float = 1.0, grad_accum: int = 1, weight_decay: float = 0.0001, n_warmup_steps: int = 10000, n_epochs: int = 90, do_mup: bool = True, mup_base_d: int = 128, log_every: int = 10, track: bool = True, ckpt_dir: str = './checkpoints')</p></div>
+<div class="desc"><p>Args(seed: int = 42, p_dropout: float = 0.2, model_d: int = 128, n_layers: int = 6, init_std: float = 0.02, resize_size: int = 256, crop_size: int = 224, n_classes: int = 1000, v2_dir: str = '', batch_size: int = 256, n_workers: int = 4, p_mixup: float = 0.2, pin_memory: bool = False, learning_rate: float = 0.001, beta1: float = 0.9, beta2: float = 0.999, grad_clip: float = 1.0, grad_accum: int = 1, weight_decay: float = 0.0001, n_warmup_steps: int = 10000, n_epochs: int = 90, do_mup: bool = True, mup_base_d: int = 128, log_every: int = 10, track: bool = True, ckpt_dir: str = './checkpoints', tags: list[str] = <factory>)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -144,119 +144,125 @@ class Args:
     track: bool = True
     &#34;&#34;&#34;whether to track with Aim.&#34;&#34;&#34;
     ckpt_dir: str = os.path.join(&#34;.&#34;, &#34;checkpoints&#34;)
-    &#34;&#34;&#34;where to store model checkpoints.&#34;&#34;&#34;</code></pre>
+    &#34;&#34;&#34;where to store model checkpoints.&#34;&#34;&#34;
+    tags: list[str] = dataclasses.field(default_factory=list)
+    &#34;&#34;&#34;any tags for this specific run.&#34;&#34;&#34;</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="train.Args.batch_size"><code class="name">var <span class="ident">batch_size</span> : int</code></dt>
+<dt id="frx.train.Args.batch_size"><code class="name">var <span class="ident">batch_size</span> : int</code></dt>
 <dd>
 <div class="desc"><p>train and evaluation batch size.</p></div>
 </dd>
-<dt id="train.Args.beta1"><code class="name">var <span class="ident">beta1</span> : float</code></dt>
+<dt id="frx.train.Args.beta1"><code class="name">var <span class="ident">beta1</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.Args.beta2"><code class="name">var <span class="ident">beta2</span> : float</code></dt>
+<dt id="frx.train.Args.beta2"><code class="name">var <span class="ident">beta2</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.Args.ckpt_dir"><code class="name">var <span class="ident">ckpt_dir</span> : str</code></dt>
+<dt id="frx.train.Args.ckpt_dir"><code class="name">var <span class="ident">ckpt_dir</span> : str</code></dt>
 <dd>
 <div class="desc"><p>where to store model checkpoints.</p></div>
 </dd>
-<dt id="train.Args.crop_size"><code class="name">var <span class="ident">crop_size</span> : int</code></dt>
+<dt id="frx.train.Args.crop_size"><code class="name">var <span class="ident">crop_size</span> : int</code></dt>
 <dd>
 <div class="desc"><p>after resize, how big an image to crop.</p></div>
 </dd>
-<dt id="train.Args.do_mup"><code class="name">var <span class="ident">do_mup</span> : bool</code></dt>
+<dt id="frx.train.Args.do_mup"><code class="name">var <span class="ident">do_mup</span> : bool</code></dt>
 <dd>
 <div class="desc"><p>Apply muP init, learning rate scaling, and QK head scaling.</p></div>
 </dd>
-<dt id="train.Args.grad_accum"><code class="name">var <span class="ident">grad_accum</span> : int</code></dt>
+<dt id="frx.train.Args.grad_accum"><code class="name">var <span class="ident">grad_accum</span> : int</code></dt>
 <dd>
 <div class="desc"><p>number of steps to accumulate gradients for. <code>1</code> implies no accumulation.</p></div>
 </dd>
-<dt id="train.Args.grad_clip"><code class="name">var <span class="ident">grad_clip</span> : float</code></dt>
+<dt id="frx.train.Args.grad_clip"><code class="name">var <span class="ident">grad_clip</span> : float</code></dt>
 <dd>
 <div class="desc"><p>maximum gradient norm. <code>0</code> implies no clipping.</p></div>
 </dd>
-<dt id="train.Args.init_std"><code class="name">var <span class="ident">init_std</span> : float</code></dt>
+<dt id="frx.train.Args.init_std"><code class="name">var <span class="ident">init_std</span> : float</code></dt>
 <dd>
 <div class="desc"><p>std dev of normal distribution for weight initialization.</p></div>
 </dd>
-<dt id="train.Args.learning_rate"><code class="name">var <span class="ident">learning_rate</span> : float</code></dt>
+<dt id="frx.train.Args.learning_rate"><code class="name">var <span class="ident">learning_rate</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.Args.log_every"><code class="name">var <span class="ident">log_every</span> : int</code></dt>
+<dt id="frx.train.Args.log_every"><code class="name">var <span class="ident">log_every</span> : int</code></dt>
 <dd>
 <div class="desc"><p>how often to log metrics.</p></div>
 </dd>
-<dt id="train.Args.model_d"><code class="name">var <span class="ident">model_d</span> : int</code></dt>
+<dt id="frx.train.Args.model_d"><code class="name">var <span class="ident">model_d</span> : int</code></dt>
 <dd>
 <div class="desc"><p>hidden dimension of ViT.</p></div>
 </dd>
-<dt id="train.Args.mup_base_d"><code class="name">var <span class="ident">mup_base_d</span> : int</code></dt>
+<dt id="frx.train.Args.mup_base_d"><code class="name">var <span class="ident">mup_base_d</span> : int</code></dt>
 <dd>
 <div class="desc"><p>what the original d was.</p></div>
 </dd>
-<dt id="train.Args.n_classes"><code class="name">var <span class="ident">n_classes</span> : int</code></dt>
+<dt id="frx.train.Args.n_classes"><code class="name">var <span class="ident">n_classes</span> : int</code></dt>
 <dd>
 <div class="desc"><p>number of classes (1000 for ImageNet-1K).</p></div>
 </dd>
-<dt id="train.Args.n_epochs"><code class="name">var <span class="ident">n_epochs</span> : int</code></dt>
+<dt id="frx.train.Args.n_epochs"><code class="name">var <span class="ident">n_epochs</span> : int</code></dt>
 <dd>
 <div class="desc"><p>number of epochs to train for.</p></div>
 </dd>
-<dt id="train.Args.n_layers"><code class="name">var <span class="ident">n_layers</span> : int</code></dt>
+<dt id="frx.train.Args.n_layers"><code class="name">var <span class="ident">n_layers</span> : int</code></dt>
 <dd>
 <div class="desc"><p>number of transformer layers.</p></div>
 </dd>
-<dt id="train.Args.n_warmup_steps"><code class="name">var <span class="ident">n_warmup_steps</span> : int</code></dt>
+<dt id="frx.train.Args.n_warmup_steps"><code class="name">var <span class="ident">n_warmup_steps</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.Args.n_workers"><code class="name">var <span class="ident">n_workers</span> : int</code></dt>
+<dt id="frx.train.Args.n_workers"><code class="name">var <span class="ident">n_workers</span> : int</code></dt>
 <dd>
 <div class="desc"><p>number of dataloader workers</p></div>
 </dd>
-<dt id="train.Args.p_dropout"><code class="name">var <span class="ident">p_dropout</span> : float</code></dt>
+<dt id="frx.train.Args.p_dropout"><code class="name">var <span class="ident">p_dropout</span> : float</code></dt>
 <dd>
 <div class="desc"><p>dropout probability.</p></div>
 </dd>
-<dt id="train.Args.p_mixup"><code class="name">var <span class="ident">p_mixup</span> : float</code></dt>
+<dt id="frx.train.Args.p_mixup"><code class="name">var <span class="ident">p_mixup</span> : float</code></dt>
 <dd>
 <div class="desc"><p>probability of adding MixUp to a batch.</p></div>
 </dd>
-<dt id="train.Args.pin_memory"><code class="name">var <span class="ident">pin_memory</span> : bool</code></dt>
+<dt id="frx.train.Args.pin_memory"><code class="name">var <span class="ident">pin_memory</span> : bool</code></dt>
 <dd>
 <div class="desc"><p>whether to pin memory in the dataloader.</p></div>
 </dd>
-<dt id="train.Args.resize_size"><code class="name">var <span class="ident">resize_size</span> : int</code></dt>
+<dt id="frx.train.Args.resize_size"><code class="name">var <span class="ident">resize_size</span> : int</code></dt>
 <dd>
 <div class="desc"><p>how big to resize images.</p></div>
 </dd>
-<dt id="train.Args.seed"><code class="name">var <span class="ident">seed</span> : int</code></dt>
+<dt id="frx.train.Args.seed"><code class="name">var <span class="ident">seed</span> : int</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="train.Args.track"><code class="name">var <span class="ident">track</span> : bool</code></dt>
+<dt id="frx.train.Args.tags"><code class="name">var <span class="ident">tags</span> : list[str]</code></dt>
+<dd>
+<div class="desc"><p>any tags for this specific run.</p></div>
+</dd>
+<dt id="frx.train.Args.track"><code class="name">var <span class="ident">track</span> : bool</code></dt>
 <dd>
 <div class="desc"><p>whether to track with Aim.</p></div>
 </dd>
-<dt id="train.Args.v2_dir"><code class="name">var <span class="ident">v2_dir</span> : str</code></dt>
+<dt id="frx.train.Args.v2_dir"><code class="name">var <span class="ident">v2_dir</span> : str</code></dt>
 <dd>
 <div class="desc"><p>Where ImageNet-V2 is stored.</p></div>
 </dd>
-<dt id="train.Args.weight_decay"><code class="name">var <span class="ident">weight_decay</span> : float</code></dt>
+<dt id="frx.train.Args.weight_decay"><code class="name">var <span class="ident">weight_decay</span> : float</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 </dd>
-<dt id="train.DataloaderMixup"><code class="flex name class">
+<dt id="frx.train.DataloaderMixup"><code class="flex name class">
 <span>class <span class="ident">DataloaderMixup</span></span>
-<span>(</span><span>args: <a title="train.Args" href="#train.Args">Args</a>)</span>
+<span>(</span><span>args: <a title="frx.train.Args" href="#frx.train.Args">Args</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -289,51 +295,57 @@ class Args:
 <ul></ul>
 </div>
 <ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="frx" href="index.html">frx</a></code></li>
+</ul>
+</li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="two-column">
-<li><code><a title="train.compute_loss" href="#train.compute_loss">compute_loss</a></code></li>
-<li><code><a title="train.evaluate" href="#train.evaluate">evaluate</a></code></li>
-<li><code><a title="train.main" href="#train.main">main</a></code></li>
-<li><code><a title="train.make_dataloader" href="#train.make_dataloader">make_dataloader</a></code></li>
-<li><code><a title="train.save" href="#train.save">save</a></code></li>
-<li><code><a title="train.step_model" href="#train.step_model">step_model</a></code></li>
+<li><code><a title="frx.train.compute_loss" href="#frx.train.compute_loss">compute_loss</a></code></li>
+<li><code><a title="frx.train.evaluate" href="#frx.train.evaluate">evaluate</a></code></li>
+<li><code><a title="frx.train.make_dataloader" href="#frx.train.make_dataloader">make_dataloader</a></code></li>
+<li><code><a title="frx.train.save" href="#frx.train.save">save</a></code></li>
+<li><code><a title="frx.train.step_model" href="#frx.train.step_model">step_model</a></code></li>
+<li><code><a title="frx.train.train" href="#frx.train.train">train</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="train.Args" href="#train.Args">Args</a></code></h4>
+<h4><code><a title="frx.train.Args" href="#frx.train.Args">Args</a></code></h4>
 <ul class="two-column">
-<li><code><a title="train.Args.batch_size" href="#train.Args.batch_size">batch_size</a></code></li>
-<li><code><a title="train.Args.beta1" href="#train.Args.beta1">beta1</a></code></li>
-<li><code><a title="train.Args.beta2" href="#train.Args.beta2">beta2</a></code></li>
-<li><code><a title="train.Args.ckpt_dir" href="#train.Args.ckpt_dir">ckpt_dir</a></code></li>
-<li><code><a title="train.Args.crop_size" href="#train.Args.crop_size">crop_size</a></code></li>
-<li><code><a title="train.Args.do_mup" href="#train.Args.do_mup">do_mup</a></code></li>
-<li><code><a title="train.Args.grad_accum" href="#train.Args.grad_accum">grad_accum</a></code></li>
-<li><code><a title="train.Args.grad_clip" href="#train.Args.grad_clip">grad_clip</a></code></li>
-<li><code><a title="train.Args.init_std" href="#train.Args.init_std">init_std</a></code></li>
-<li><code><a title="train.Args.learning_rate" href="#train.Args.learning_rate">learning_rate</a></code></li>
-<li><code><a title="train.Args.log_every" href="#train.Args.log_every">log_every</a></code></li>
-<li><code><a title="train.Args.model_d" href="#train.Args.model_d">model_d</a></code></li>
-<li><code><a title="train.Args.mup_base_d" href="#train.Args.mup_base_d">mup_base_d</a></code></li>
-<li><code><a title="train.Args.n_classes" href="#train.Args.n_classes">n_classes</a></code></li>
-<li><code><a title="train.Args.n_epochs" href="#train.Args.n_epochs">n_epochs</a></code></li>
-<li><code><a title="train.Args.n_layers" href="#train.Args.n_layers">n_layers</a></code></li>
-<li><code><a title="train.Args.n_warmup_steps" href="#train.Args.n_warmup_steps">n_warmup_steps</a></code></li>
-<li><code><a title="train.Args.n_workers" href="#train.Args.n_workers">n_workers</a></code></li>
-<li><code><a title="train.Args.p_dropout" href="#train.Args.p_dropout">p_dropout</a></code></li>
-<li><code><a title="train.Args.p_mixup" href="#train.Args.p_mixup">p_mixup</a></code></li>
-<li><code><a title="train.Args.pin_memory" href="#train.Args.pin_memory">pin_memory</a></code></li>
-<li><code><a title="train.Args.resize_size" href="#train.Args.resize_size">resize_size</a></code></li>
-<li><code><a title="train.Args.seed" href="#train.Args.seed">seed</a></code></li>
-<li><code><a title="train.Args.track" href="#train.Args.track">track</a></code></li>
-<li><code><a title="train.Args.v2_dir" href="#train.Args.v2_dir">v2_dir</a></code></li>
-<li><code><a title="train.Args.weight_decay" href="#train.Args.weight_decay">weight_decay</a></code></li>
+<li><code><a title="frx.train.Args.batch_size" href="#frx.train.Args.batch_size">batch_size</a></code></li>
+<li><code><a title="frx.train.Args.beta1" href="#frx.train.Args.beta1">beta1</a></code></li>
+<li><code><a title="frx.train.Args.beta2" href="#frx.train.Args.beta2">beta2</a></code></li>
+<li><code><a title="frx.train.Args.ckpt_dir" href="#frx.train.Args.ckpt_dir">ckpt_dir</a></code></li>
+<li><code><a title="frx.train.Args.crop_size" href="#frx.train.Args.crop_size">crop_size</a></code></li>
+<li><code><a title="frx.train.Args.do_mup" href="#frx.train.Args.do_mup">do_mup</a></code></li>
+<li><code><a title="frx.train.Args.grad_accum" href="#frx.train.Args.grad_accum">grad_accum</a></code></li>
+<li><code><a title="frx.train.Args.grad_clip" href="#frx.train.Args.grad_clip">grad_clip</a></code></li>
+<li><code><a title="frx.train.Args.init_std" href="#frx.train.Args.init_std">init_std</a></code></li>
+<li><code><a title="frx.train.Args.learning_rate" href="#frx.train.Args.learning_rate">learning_rate</a></code></li>
+<li><code><a title="frx.train.Args.log_every" href="#frx.train.Args.log_every">log_every</a></code></li>
+<li><code><a title="frx.train.Args.model_d" href="#frx.train.Args.model_d">model_d</a></code></li>
+<li><code><a title="frx.train.Args.mup_base_d" href="#frx.train.Args.mup_base_d">mup_base_d</a></code></li>
+<li><code><a title="frx.train.Args.n_classes" href="#frx.train.Args.n_classes">n_classes</a></code></li>
+<li><code><a title="frx.train.Args.n_epochs" href="#frx.train.Args.n_epochs">n_epochs</a></code></li>
+<li><code><a title="frx.train.Args.n_layers" href="#frx.train.Args.n_layers">n_layers</a></code></li>
+<li><code><a title="frx.train.Args.n_warmup_steps" href="#frx.train.Args.n_warmup_steps">n_warmup_steps</a></code></li>
+<li><code><a title="frx.train.Args.n_workers" href="#frx.train.Args.n_workers">n_workers</a></code></li>
+<li><code><a title="frx.train.Args.p_dropout" href="#frx.train.Args.p_dropout">p_dropout</a></code></li>
+<li><code><a title="frx.train.Args.p_mixup" href="#frx.train.Args.p_mixup">p_mixup</a></code></li>
+<li><code><a title="frx.train.Args.pin_memory" href="#frx.train.Args.pin_memory">pin_memory</a></code></li>
+<li><code><a title="frx.train.Args.resize_size" href="#frx.train.Args.resize_size">resize_size</a></code></li>
+<li><code><a title="frx.train.Args.seed" href="#frx.train.Args.seed">seed</a></code></li>
+<li><code><a title="frx.train.Args.tags" href="#frx.train.Args.tags">tags</a></code></li>
+<li><code><a title="frx.train.Args.track" href="#frx.train.Args.track">track</a></code></li>
+<li><code><a title="frx.train.Args.v2_dir" href="#frx.train.Args.v2_dir">v2_dir</a></code></li>
+<li><code><a title="frx.train.Args.weight_decay" href="#frx.train.Args.weight_decay">weight_decay</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="train.DataloaderMixup" href="#train.DataloaderMixup">DataloaderMixup</a></code></h4>
+<h4><code><a title="frx.train.DataloaderMixup" href="#frx.train.DataloaderMixup">DataloaderMixup</a></code></h4>
 </li>
 </ul>
 </li>

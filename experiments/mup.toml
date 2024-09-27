@@ -1,0 +1,12 @@
+# Model
+p_dropout = 0.1
+n_layers = 18
+model_d = 128
+
+# Data
+batch_size = 1024
+n_workers = 32
+
+# Optimization
+learning_rate = { min = 1e-6, max = 1e-1, dist = "loguniform" }
+grad_clip = 0.0

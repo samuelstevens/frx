@@ -19,10 +19,8 @@ import torchvision.transforms.v2 as transforms
 import tyro
 from jaxtyping import Array, Float, Int, jaxtyped
 
-import frx
+from . import helpers, mup, vit
 
-log_format = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
-logging.basicConfig(level=logging.INFO, format=log_format)
 logger = logging.getLogger("train")
 
 
@@ -85,6 +83,8 @@ class Args:
     """whether to track with Aim."""
     ckpt_dir: str = os.path.join(".", "checkpoints")
     """where to store model checkpoints."""
+    tags: list[str] = dataclasses.field(default_factory=list)
+    """any tags for this specific run."""
 
 
 class DataloaderMixup:
@@ -131,7 +131,7 @@ def make_dataloader(args: Args, dataset, *, is_train: bool):
         transforms.PILToTensor(),
         transforms.ConvertImageDtype(torch.float32),
         transforms.Normalize(
-            mean=frx.IMAGENET_CHANNEL_MEAN, std=frx.IMAGENET_CHANNEL_STD
+            mean=helpers.IMAGENET_CHANNEL_MEAN, std=helpers.IMAGENET_CHANNEL_STD
         ),
     ]
     transform.extend(common_transforms)
@@ -251,7 +251,7 @@ def evaluate(model: eqx.Module, dataloader, key: chex.PRNGKey) -> dict[str, obje
 
 
 @beartype.beartype
-def main(args: Args):
+def train(args: Args):
     key = jax.random.key(seed=args.seed)
     key, model_key = jax.random.split(key)
 
@@ -267,13 +267,13 @@ def main(args: Args):
         n_classes=args.n_classes,
     )
     if args.do_mup:
-        model = frx.VisionTransformerMuP(**model_cfg, key=model_key)
+        model = vit.VisionTransformerMuP(**model_cfg, key=model_key)
     else:
-        model = frx.VisionTransformer(**model_cfg, key=model_key)
+        model = vit.VisionTransformer(**model_cfg, key=model_key)
 
     if args.do_mup:
         key, model_key = jax.random.split(key)
-        model = frx.mup.init(
+        model = mup.init(
             model, std=args.init_std, m_d=args.model_d / args.mup_base_d, key=model_key
         )
     logger.info("Initialized model.")
@@ -371,10 +371,10 @@ def main(args: Args):
     # 5. Logging and checkpointing
     if args.track:
         run = aim.Run(experiment="train")
-        run["hparams"] = {k: frx.to_aim_value(v) for k, v in vars(args).items()}
+        run["hparams"] = {k: helpers.to_aim_value(v) for k, v in vars(args).items()}
         run["hparams"]["cmd"] = " ".join([sys.executable] + sys.argv)
     else:
-        run = frx.DummyAimRun()
+        run = helpers.DummyAimRun()
 
     os.makedirs(args.ckpt_dir, exist_ok=True)
 
@@ -447,4 +447,6 @@ def main(args: Args):
 
 
 if __name__ == "__main__":
-    main(tyro.cli(Args))
+    log_format = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
+    logging.basicConfig(level=logging.INFO, format=log_format)
+    train(tyro.cli(Args))
