@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+<meta name="generator" content="pdoc3 0.11.1">
+<title>frx API documentation</title>
+<meta name="description" content="">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:1.5em;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:2em 0 .50em 0}h3{font-size:1.4em;margin:1.6em 0 .7em 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .2s ease-in-out}a:visited{color:#503}a:hover{color:#b62}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900;font-weight:bold}pre code{font-size:.8em;line-height:1.4em;padding:1em;display:block}code{background:#f3f3f3;font-family:"DejaVu Sans Mono",monospace;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em 1em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul ul{padding-left:1em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({ tex2jax: { inlineMath: [ ['$','$'], ["\\(","\\)"] ], processEscapes: true } });</script>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS_CHTML" integrity="sha256-kZafAc6mZvK3W3v1pHOcUix30OHQN6pU/NO2oFkqZVw=" crossorigin></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" integrity="sha512-D9gUyxqja7hBtkWpPWGt9wfbfaMGVt9gnyCvYa+jojwwPHLCzUm5i8rpk7vD7wNee9bA35eYIjobYPaQuKS1MQ==" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => {
+hljs.configure({languages: ['bash', 'css', 'diff', 'graphql', 'ini', 'javascript', 'json', 'plaintext', 'python', 'python-repl', 'rust', 'shell', 'sql', 'typescript', 'xml', 'yaml']});
+hljs.highlightAll();
+})</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Package <code>frx</code></h1>
+</header>
+<section id="section-intro">
+</section>
+<section>
+<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+<dl>
+<dt><code class="name"><a title="frx.helpers" href="helpers.html">frx.helpers</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="frx.mup" href="mup.html">frx.mup</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt><code class="name"><a title="frx.vit" href="vit.html">frx.vit</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="frx.to_aim_value"><code class="name flex">
+<span>def <span class="ident">to_aim_value</span></span>(<span>value: object)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Recursively converts objects into <a href="https://github.com/aimhubio/aim">Aim</a>-compatible values.</p>
+<p>As a fallback, tries to call <code><a title="frx.to_aim_value" href="#frx.to_aim_value">to_aim_value()</a></code> on an object.</p></div>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="frx.DummyAimRun"><code class="flex name class">
+<span>class <span class="ident">DummyAimRun</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DummyAimRun:
+    def __init__(self, *args, **kwargs):
+        self.hash = &#34;dummy-run-hash&#34;
+
+    def track(self, metrics: dict[str, object], step: int):
+        pass</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="frx.DummyAimRun.track"><code class="name flex">
+<span>def <span class="ident">track</span></span>(<span>self, metrics: dict[str, object], step: int)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="frx.VisionTransformer"><code class="flex name class">
+<span>class <span class="ident">VisionTransformer</span></span>
+<span>(</span><span>d: int, hidden_d: int, n_heads: int, n_layers: int, p_dropout: float, patch_size: int, n_patches: int, n_classes: int, *, key: jax.Array)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>VisionTransformer(d: int, hidden_d: int, n_heads: int, n_layers: int, p_dropout: float, patch_size: int, n_patches: int, n_classes: int, *, key: jax.Array)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@jaxtyped(typechecker=beartype.beartype)
+class VisionTransformer(eqx.Module):
+    patch_embedding: PatchEmbedding
+    pos_embedding: Float[Array, &#34;...&#34;]
+    attn_blocks: list[AttentionBlock]
+    dropout: eqx.nn.Dropout
+    head: eqx.nn.Linear
+    n_layers: int
+
+    def __init__(
+        self,
+        d: int,
+        hidden_d: int,
+        n_heads: int,
+        n_layers: int,
+        p_dropout: float,
+        patch_size: int,
+        n_patches: int,
+        n_classes: int,
+        *,
+        key: chex.PRNGKey,
+    ):
+        key1, key2, key3, key4 = jax.random.split(key, 4)
+        self.patch_embedding = PatchEmbedding(3, d, patch_size, key=key1)
+        self.pos_embedding = jax.random.normal(key2, (n_patches + 1, d))
+        self.dropout = eqx.nn.Dropout(p_dropout)
+
+        self.n_layers = n_layers
+        self.attn_blocks = [
+            AttentionBlock(d, hidden_d, n_heads, p_dropout, key=key_)
+            for key_ in jax.random.split(key3, self.n_layers)
+        ]
+        self.head = eqx.nn.Linear(d, n_classes, key=key4)
+
+    def __call__(
+        self, x: Float[Array, &#34;3 width height&#34;], inference: bool, key: chex.PRNGKey
+    ) -&gt; Float[Array, &#34; n_classes&#34;]:
+        x = self.patch_embedding(x)
+        x += self.pos_embedding[: x.shape[0]]
+        dropout_key, *attn_keys = jax.random.split(key, self.n_layers + 1)
+        x = self.dropout(x, inference=inference, key=dropout_key)
+        for block, attn_key in zip(self.attn_blocks, attn_keys):
+            x = block(x, inference, key=attn_key)
+        x = jnp.mean(x, axis=0)
+        x = self.head(x)
+        return x</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>equinox._module.Module</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="frx.vit.VisionTransformerMuP" href="vit.html#frx.vit.VisionTransformerMuP">VisionTransformerMuP</a></li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="frx.VisionTransformer.attn_blocks"><code class="name">var <span class="ident">attn_blocks</span> : list[<a title="frx.vit.AttentionBlock" href="vit.html#frx.vit.AttentionBlock">AttentionBlock</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.VisionTransformer.dropout"><code class="name">var <span class="ident">dropout</span> : equinox.nn._dropout.Dropout</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.VisionTransformer.head"><code class="name">var <span class="ident">head</span> : equinox.nn._linear.Linear</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.VisionTransformer.n_layers"><code class="name">var <span class="ident">n_layers</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.VisionTransformer.patch_embedding"><code class="name">var <span class="ident">patch_embedding</span> : <a title="frx.vit.PatchEmbedding" href="vit.html#frx.vit.PatchEmbedding">PatchEmbedding</a></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.VisionTransformer.pos_embedding"><code class="name">var <span class="ident">pos_embedding</span> : jaxtyping.Float[Array, '...']</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="frx.VisionTransformerMuP"><code class="flex name class">
+<span>class <span class="ident">VisionTransformerMuP</span></span>
+<span>(</span><span>d: int, hidden_d: int, n_heads: int, n_layers: int, p_dropout: float, patch_size: int, n_patches: int, n_classes: int, *, key: jax.Array)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Exact same as an <code><a title="frx.VisionTransformer" href="#frx.VisionTransformer">VisionTransformer</a></code> but uses <code>AttentionBlockMuP</code> instead of <code>AttentionBlock</code>.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@jaxtyped(typechecker=beartype.beartype)
+class VisionTransformerMuP(VisionTransformer):
+    &#34;&#34;&#34;
+    Exact same as an `VisionTransformer` but uses `AttentionBlockMuP` instead of `AttentionBlock`.
+    &#34;&#34;&#34;
+
+    def __init__(
+        self,
+        d: int,
+        hidden_d: int,
+        n_heads: int,
+        n_layers: int,
+        p_dropout: float,
+        patch_size: int,
+        n_patches: int,
+        n_classes: int,
+        *,
+        key: chex.PRNGKey,
+    ):
+        key1, key2, key3, key4 = jax.random.split(key, 4)
+        self.patch_embedding = PatchEmbedding(3, d, patch_size, key=key1)
+        self.pos_embedding = jax.random.normal(key2, (n_patches + 1, d))
+        self.dropout = eqx.nn.Dropout(p_dropout)
+
+        self.n_layers = n_layers
+        self.attn_blocks = [
+            AttentionBlockMuP(d, hidden_d, n_heads, p_dropout, key=key_)
+            for key_ in jax.random.split(key3, self.n_layers)
+        ]
+        self.head = eqx.nn.Linear(d, n_classes, key=key4)</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="frx.vit.VisionTransformer" href="vit.html#frx.vit.VisionTransformer">VisionTransformer</a></li>
+<li>equinox._module.Module</li>
+</ul>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<ul>
+<li><code><a title="frx.helpers" href="helpers.html">frx.helpers</a></code></li>
+<li><code><a title="frx.mup" href="mup.html">frx.mup</a></code></li>
+<li><code><a title="frx.vit" href="vit.html">frx.vit</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="frx.to_aim_value" href="#frx.to_aim_value">to_aim_value</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="frx.DummyAimRun" href="#frx.DummyAimRun">DummyAimRun</a></code></h4>
+<ul class="">
+<li><code><a title="frx.DummyAimRun.track" href="#frx.DummyAimRun.track">track</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="frx.VisionTransformer" href="#frx.VisionTransformer">VisionTransformer</a></code></h4>
+<ul class="two-column">
+<li><code><a title="frx.VisionTransformer.attn_blocks" href="#frx.VisionTransformer.attn_blocks">attn_blocks</a></code></li>
+<li><code><a title="frx.VisionTransformer.dropout" href="#frx.VisionTransformer.dropout">dropout</a></code></li>
+<li><code><a title="frx.VisionTransformer.head" href="#frx.VisionTransformer.head">head</a></code></li>
+<li><code><a title="frx.VisionTransformer.n_layers" href="#frx.VisionTransformer.n_layers">n_layers</a></code></li>
+<li><code><a title="frx.VisionTransformer.patch_embedding" href="#frx.VisionTransformer.patch_embedding">patch_embedding</a></code></li>
+<li><code><a title="frx.VisionTransformer.pos_embedding" href="#frx.VisionTransformer.pos_embedding">pos_embedding</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="frx.VisionTransformerMuP" href="#frx.VisionTransformerMuP">VisionTransformerMuP</a></code></h4>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.11.1</a>.</p>
+</footer>
+</body>
+</html>

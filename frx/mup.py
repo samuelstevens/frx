@@ -11,8 +11,8 @@ def init(model: eqx.Module, *, std: float, m_d: float, key: chex.PRNGKey) -> eqx
     But that's for language.
     For vision, where our inputs are already dense, we want the patch embedding to also be reduced by m_d.
     """
-    is_linear = lambda x: isinstance(x, eqx.nn.Linear)
-    get_weights = lambda m: [
+    is_linear = lambda x: isinstance(x, eqx.nn.Linear)  # noqa: E731
+    get_weights = lambda m: [  # noqa: E731
         x.weight
         for x in jax.tree_util.tree_leaves(m, is_leaf=is_linear)
         if is_linear(x)

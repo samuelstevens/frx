@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.1">
-<title>src.frx API documentation</title>
+<title>frx.helpers API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -24,41 +24,30 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>src.frx</code></h1>
+<h1 class="title">Module <code>frx.helpers</code></h1>
 </header>
 <section id="section-intro">
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
-<dl>
-<dt><code class="name"><a title="src.frx.helpers" href="helpers.html">src.frx.helpers</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="src.frx.vit" href="vit.html">src.frx.vit</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 </section>
 <section>
 </section>
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.frx.to_aim_value"><code class="name flex">
+<dt id="frx.helpers.to_aim_value"><code class="name flex">
 <span>def <span class="ident">to_aim_value</span></span>(<span>value: object)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Recursively converts objects into <a href="https://github.com/aimhubio/aim">Aim</a>-compatible values.</p>
-<p>As a fallback, tries to call <code><a title="src.frx.to_aim_value" href="#src.frx.to_aim_value">to_aim_value()</a></code> on an object.</p></div>
+<p>As a fallback, tries to call <code><a title="frx.helpers.to_aim_value" href="#frx.helpers.to_aim_value">to_aim_value()</a></code> on an object.</p></div>
 </dd>
 </dl>
 </section>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="src.frx.DummyAimRun"><code class="flex name class">
+<dt id="frx.helpers.DummyAimRun"><code class="flex name class">
 <span>class <span class="ident">DummyAimRun</span></span>
 <span>(</span><span>*args, **kwargs)</span>
 </code></dt>
@@ -77,98 +66,9 @@ hljs.highlightAll();
 </details>
 <h3>Methods</h3>
 <dl>
-<dt id="src.frx.DummyAimRun.track"><code class="name flex">
+<dt id="frx.helpers.DummyAimRun.track"><code class="name flex">
 <span>def <span class="ident">track</span></span>(<span>self, metrics: dict[str, object], step: int)</span>
 </code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
-<dt id="src.frx.VisionTransformer"><code class="flex name class">
-<span>class <span class="ident">VisionTransformer</span></span>
-<span>(</span><span>d: int, hidden_d: int, n_heads: int, n_layers: int, p_dropout: float, patch_size: int, n_patches: int, n_classes: int, *, key: jax.Array)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>VisionTransformer(d: int, hidden_d: int, n_heads: int, n_layers: int, p_dropout: float, patch_size: int, n_patches: int, n_classes: int, *, key: jax.Array)</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">@jaxtyped(typechecker=beartype.beartype)
-class VisionTransformer(eqx.Module):
-    patch_embedding: PatchEmbedding
-    pos_embedding: Float[Array, &#34;...&#34;]
-    attn_blocks: list[AttentionBlock]
-    dropout: eqx.nn.Dropout
-    head: eqx.nn.Linear
-    n_layers: int
-
-    def __init__(
-        self,
-        d: int,
-        hidden_d: int,
-        n_heads: int,
-        n_layers: int,
-        p_dropout: float,
-        patch_size: int,
-        n_patches: int,
-        n_classes: int,
-        *,
-        key: chex.PRNGKey,
-    ):
-        key1, key2, key3, key4 = jax.random.split(key, 4)
-        self.patch_embedding = PatchEmbedding(3, d, patch_size, key=key1)
-        self.pos_embedding = jax.random.normal(key2, (n_patches + 1, d))
-        self.dropout = eqx.nn.Dropout(p_dropout)
-
-        self.n_layers = n_layers
-        self.attn_blocks = [
-            AttentionBlock(d, hidden_d, n_heads, p_dropout, key=key_)
-            for key_ in jax.random.split(key3, self.n_layers)
-        ]
-        self.head = eqx.nn.Linear(d, n_classes, key=key4)
-
-    def __call__(
-        self, x: Float[Array, &#34;3 width height&#34;], inference: bool, key: chex.PRNGKey
-    ) -&gt; Float[Array, &#34; n_classes&#34;]:
-        x = self.patch_embedding(x)
-        x += self.pos_embedding[: x.shape[0]]
-        dropout_key, *attn_keys = jax.random.split(key, self.n_layers)
-        x = self.dropout(x, inference=inference, key=dropout_key)
-        for block, attn_key in zip(self.attn_blocks, attn_keys):
-            x = block(x, inference, key=attn_key)
-        x = jnp.mean(x, axis=0)
-        x = self.head(x)
-        return x</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>equinox._module.Module</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="src.frx.VisionTransformer.attn_blocks"><code class="name">var <span class="ident">attn_blocks</span> : list[<a title="src.frx.vit.AttentionBlock" href="vit.html#src.frx.vit.AttentionBlock">AttentionBlock</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="src.frx.VisionTransformer.dropout"><code class="name">var <span class="ident">dropout</span> : equinox.nn._dropout.Dropout</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="src.frx.VisionTransformer.head"><code class="name">var <span class="ident">head</span> : equinox.nn._linear.Linear</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="src.frx.VisionTransformer.n_layers"><code class="name">var <span class="ident">n_layers</span> : int</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="src.frx.VisionTransformer.patch_embedding"><code class="name">var <span class="ident">patch_embedding</span> : <a title="src.frx.vit.PatchEmbedding" href="vit.html#src.frx.vit.PatchEmbedding">PatchEmbedding</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="src.frx.VisionTransformer.pos_embedding"><code class="name">var <span class="ident">pos_embedding</span> : jaxtyping.Float[Array, '...']</code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
@@ -182,34 +82,22 @@ class VisionTransformer(eqx.Module):
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.frx.helpers" href="helpers.html">src.frx.helpers</a></code></li>
-<li><code><a title="src.frx.vit" href="vit.html">src.frx.vit</a></code></li>
+<li><code><a title="frx" href="index.html">frx</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="src.frx.to_aim_value" href="#src.frx.to_aim_value">to_aim_value</a></code></li>
+<li><code><a title="frx.helpers.to_aim_value" href="#frx.helpers.to_aim_value">to_aim_value</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="src.frx.DummyAimRun" href="#src.frx.DummyAimRun">DummyAimRun</a></code></h4>
+<h4><code><a title="frx.helpers.DummyAimRun" href="#frx.helpers.DummyAimRun">DummyAimRun</a></code></h4>
 <ul class="">
-<li><code><a title="src.frx.DummyAimRun.track" href="#src.frx.DummyAimRun.track">track</a></code></li>
-</ul>
-</li>
-<li>
-<h4><code><a title="src.frx.VisionTransformer" href="#src.frx.VisionTransformer">VisionTransformer</a></code></h4>
-<ul class="two-column">
-<li><code><a title="src.frx.VisionTransformer.attn_blocks" href="#src.frx.VisionTransformer.attn_blocks">attn_blocks</a></code></li>
-<li><code><a title="src.frx.VisionTransformer.dropout" href="#src.frx.VisionTransformer.dropout">dropout</a></code></li>
-<li><code><a title="src.frx.VisionTransformer.head" href="#src.frx.VisionTransformer.head">head</a></code></li>
-<li><code><a title="src.frx.VisionTransformer.n_layers" href="#src.frx.VisionTransformer.n_layers">n_layers</a></code></li>
-<li><code><a title="src.frx.VisionTransformer.patch_embedding" href="#src.frx.VisionTransformer.patch_embedding">patch_embedding</a></code></li>
-<li><code><a title="src.frx.VisionTransformer.pos_embedding" href="#src.frx.VisionTransformer.pos_embedding">pos_embedding</a></code></li>
+<li><code><a title="frx.helpers.DummyAimRun.track" href="#frx.helpers.DummyAimRun.track">track</a></code></li>
 </ul>
 </li>
 </ul>

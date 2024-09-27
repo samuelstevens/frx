@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.1">
-<title>src.frx.helpers API documentation</title>
+<title>frx.mup API documentation</title>
 <meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
@@ -24,7 +24,7 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.frx.helpers</code></h1>
+<h1 class="title">Module <code>frx.mup</code></h1>
 </header>
 <section id="section-intro">
 </section>
@@ -35,46 +35,18 @@ hljs.highlightAll();
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.frx.helpers.to_aim_value"><code class="name flex">
-<span>def <span class="ident">to_aim_value</span></span>(<span>value: object)</span>
+<dt id="frx.mup.init"><code class="name flex">
+<span>def <span class="ident">init</span></span>(<span>model: equinox._module.Module, *, std: float, m_d: float, key: jax.Array) ‑> equinox._module.Module</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Recursively converts objects into <a href="https://github.com/aimhubio/aim">Aim</a>-compatible values.</p>
-<p>As a fallback, tries to call <code><a title="src.frx.helpers.to_aim_value" href="#src.frx.helpers.to_aim_value">to_aim_value()</a></code> on an object.</p></div>
+<div class="desc"><p>Re-init all eqx.nn.Linear modules to have weights sampled from ~N(0, std^2 / m_d).
+The Eluether <a href="https://blog.eleuther.ai/mutransfer/">post</a> specifies not changing the embedding weight initialization.
+But that's for language.
+For vision, where our inputs are already dense, we want the patch embedding to also be reduced by m_d.</p></div>
 </dd>
 </dl>
 </section>
 <section>
-<h2 class="section-title" id="header-classes">Classes</h2>
-<dl>
-<dt id="src.frx.helpers.DummyAimRun"><code class="flex name class">
-<span>class <span class="ident">DummyAimRun</span></span>
-<span>(</span><span>*args, **kwargs)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class DummyAimRun:
-    def __init__(self, *args, **kwargs):
-        self.hash = &#34;dummy-run-hash&#34;
-
-    def track(self, metrics: dict[str, object], step: int):
-        pass</code></pre>
-</details>
-<h3>Methods</h3>
-<dl>
-<dt id="src.frx.helpers.DummyAimRun.track"><code class="name flex">
-<span>def <span class="ident">track</span></span>(<span>self, metrics: dict[str, object], step: int)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
-</dl>
 </section>
 </article>
 <nav id="sidebar">
@@ -84,22 +56,12 @@ hljs.highlightAll();
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.frx" href="index.html">src.frx</a></code></li>
+<li><code><a title="frx" href="index.html">frx</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="src.frx.helpers.to_aim_value" href="#src.frx.helpers.to_aim_value">to_aim_value</a></code></li>
-</ul>
-</li>
-<li><h3><a href="#header-classes">Classes</a></h3>
-<ul>
-<li>
-<h4><code><a title="src.frx.helpers.DummyAimRun" href="#src.frx.helpers.DummyAimRun">DummyAimRun</a></code></h4>
-<ul class="">
-<li><code><a title="src.frx.helpers.DummyAimRun.track" href="#src.frx.helpers.DummyAimRun.track">track</a></code></li>
-</ul>
-</li>
+<li><code><a title="frx.mup.init" href="#frx.mup.init">init</a></code></li>
 </ul>
 </li>
 </ul>
