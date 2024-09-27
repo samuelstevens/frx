@@ -1,19 +1,22 @@
 [project]
 name = "frx"
 version = "0.1.0"
-description = "Add your description here"
+description = "Vision pre-training in Jax."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "aim>=3.24.0",
+    "altair>=5.4.1",
     "beartype>=0.18.5",
     "datasets>=3.0.0",
     "einops>=0.8.0",
     "equinox>=0.11.6",
     "jax>=0.2.34",
     "jaxtyping",
+    "marimo>=0.8.15",
     "optax>=0.2.3",
     "pdoc3>=0.11.1",
+    "polars>=1.8.2",
     "torch>=0.8.10",
     "torchvision>=0.19.1",
     "tyro",
