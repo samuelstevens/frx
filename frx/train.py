@@ -4,6 +4,7 @@ import logging
 import os
 import sys
 import time
+import typing
 
 import aim
 import beartype
@@ -21,13 +22,19 @@ from jaxtyping import Array, Float, Int, jaxtyped
 
 from . import helpers, mup, vit
 
-logger = logging.getLogger("train")
+Schedule = typing.Literal[None, "warmup", "warmup+cosine-decay"]
+
+
+log_format = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
+logging.basicConfig(level=logging.INFO, format=log_format)
+logger = logging.getLogger(__name__)
 
 
 @beartype.beartype
 @dataclasses.dataclass(frozen=True)
 class Args:
     seed: int = 42
+    """Random seed."""
 
     # Model
     p_dropout: float = 0.2
@@ -59,16 +66,22 @@ class Args:
 
     # Optimization
     learning_rate: float = 0.001
+    """peak learning rate."""
+    lr_schedule: Schedule = "warmup"
+    """what kind of learning rate schedule to use."""
+    n_lr_warmup: int = 10_000
+    """Number of learning rate warmup steps."""
+
     beta1: float = 0.9
     beta2: float = 0.999
     grad_clip: float = 1.0
-    """maximum gradient norm. `0` implies no clipping."""
+    """Maximum gradient norm. `0` implies no clipping."""
     grad_accum: int = 1
-    """number of steps to accumulate gradients for. `1` implies no accumulation."""
+    """Number of steps to accumulate gradients for. `1` implies no accumulation."""
     weight_decay: float = 0.0001
-    n_warmup_steps: int = 10_000
+
     n_epochs: int = 90
-    """number of epochs to train for."""
+    """Number of epochs to train for."""
 
     # muP
     do_mup: bool = True
@@ -169,6 +182,36 @@ def make_dataloader(args: Args, dataset, *, is_train: bool):
     )
 
 
+@beartype.beartype
+def get_lr_schedule(
+    args: Args, n_train: int, *, lr: float | None = None
+) -> optax.Schedule:
+    # Total number of training steps.
+    n_steps_per_epoch = int(n_train / args.batch_size)
+    n_steps = n_steps_per_epoch * args.n_epochs
+
+    logger.info("Training for %d steps.", n_steps)
+
+    if lr is None:
+        lr = args.learning_rate
+
+    # No schedule
+    if not args.lr_schedule:
+        return optax.constant_schedule(lr)
+
+    # Linear warmup, constant LR after.
+    if args.lr_schedule == "warmup":
+        return optax.schedules.warmup_constant_schedule(0.0, lr, args.n_lr_warmup)
+
+    # Linear warmup + cosine decay (fixed number of training steps).
+    if args.lr_schedule == "warmup+cosine-decay":
+        return optax.schedules.warmup_cosine_decay_schedule(
+            0.0, lr, args.n_lr_warmup, n_steps
+        )
+
+    typing.assert_never(args.lr_schedule)
+
+
 def save(filename, cfg, model):
     with open(filename, "wb") as fd:
         cfg_str = json.dumps(cfg)
@@ -252,6 +295,10 @@ def evaluate(model: eqx.Module, dataloader, key: chex.PRNGKey) -> dict[str, obje
 
 @beartype.beartype
 def train(args: Args):
+    import os
+
+    print("JAX_PLATFORMS:", os.environ.get("JAX_PLATFORMS", "no value set"))
+    print("logger level:", logger.getEffectiveLevel())
     key = jax.random.key(seed=args.seed)
     key, model_key = jax.random.split(key)
 
@@ -303,11 +350,7 @@ def train(args: Args):
     logger.info("Loaded %d dataloaders.", len(val_dataloaders) + 1)
 
     # 3. Train
-    n_steps_per_epoch = int(len(train_dataset) / args.batch_size)
-    n_steps = n_steps_per_epoch * args.n_epochs
-    lr_schedule = optax.schedules.warmup_cosine_decay_schedule(
-        0.0, args.learning_rate, args.n_warmup_steps, n_steps // args.grad_accum
-    )
+    lr_schedule = get_lr_schedule(args, len(train_dataset))
     optim = optax.adamw(
         learning_rate=lr_schedule,
         b1=args.beta1,
@@ -328,13 +371,10 @@ def train(args: Args):
         param_labels = eqx.tree_at(lambda m: m.pos_embedding, param_labels, "embedding")
 
         # Make a new optimizer for hidden (non-embedding) params that scales learning rate by 1/m_d.
+        scaled_lr = args.learning_rate / (args.model_d / args.mup_base_d)
         hidden_adamw = optax.adamw(
-            learning_rate=optax.schedules.warmup_cosine_decay_schedule(
-                0.0,
-                args.learning_rate / (args.model_d / args.mup_base_d),
-                args.n_warmup_steps,
-                n_steps // args.grad_accum,
-            ),
+            # Note that we specify lr so we can override args.learning_rate with the scaled LR.
+            learning_rate=get_lr_schedule(args, len(train_dataset), lr=scaled_lr),
             b1=args.beta1,
             b2=args.beta2,
             weight_decay=args.weight_decay,
@@ -377,8 +417,6 @@ def train(args: Args):
         run = helpers.DummyAimRun()
 
     os.makedirs(args.ckpt_dir, exist_ok=True)
-
-    logger.info("Training for %d steps.", n_steps)
 
     flops_per_iter = 0
     flops_promised = 38.7e12  # 38.7 TFLOPS for fp16 on A6000
@@ -447,6 +485,4 @@ def train(args: Args):
 
 
 if __name__ == "__main__":
-    log_format = "[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s"
-    logging.basicConfig(level=logging.INFO, format=log_format)
     train(tyro.cli(Args))

@@ -84,14 +84,16 @@ def main(
             msg = "You must specify --n-gpus, --n-cpus, --n-hours and --sacct when using --slurm."
             raise ValueError(msg)
 
-        executor = submitit.SlurmExecutor(
+        executor = submitit.SlurmExecutor(folder="logs")
+        executor.update_parameters(
             time=n_hours * 60,
             gpus_per_node=n_gpus,
             cpus_per_task=n_cpus,
             stderr_to_stdout=True,
             partition="gpu",
             account=sacct,
-            folder="logs",
+            # For whatever reason, we cannot import jax without a GPU. If you set JAX_PLATFORMS=cpu to run this launcher script, then it will be true for the submitted jobs. This means that your training jobs will run on the CPU instead of the cluster GPUs. This extra arg exports an updated JAX_PLATFORMS variable for the cluster jobs.
+            setup=["export JAX_PLATFORMS=''"],
         )
     else:
         executor = submitit.DebugExecutor(folder="logs")
@@ -99,8 +101,10 @@ def main(
     # Include filename in experiment tags.
     exp_name, _ = os.path.splitext(os.path.basename(config_file))
     sweep_args = [
-        dataclasses.replace(overwrite(args, override), tags=args.tags + [exp_name])
-        for args in sweep_args
+        dataclasses.replace(
+            overwrite(args, override), tags=args.tags + [exp_name], seed=args.seed + i
+        )
+        for i, args in enumerate(sweep_args)
     ]
     jobs = executor.map_array(frx.train.train, sweep_args)
     for i, result in enumerate(submitit.helpers.as_completed(jobs)):

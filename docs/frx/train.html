@@ -47,6 +47,12 @@ hljs.highlightAll();
 <dd>
 <div class="desc"></div>
 </dd>
+<dt id="frx.train.get_lr_schedule"><code class="name flex">
+<span>def <span class="ident">get_lr_schedule</span></span>(<span>args: <a title="frx.train.Args" href="#frx.train.Args">Args</a>, n_train: int, *, lr: float | None = None) ‑> Callable[[Union[jax.Array, numpy.ndarray, numpy.bool, numpy.number, float, int]], Union[jax.Array, numpy.ndarray, numpy.bool, numpy.number, float, int]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
 <dt id="frx.train.make_dataloader"><code class="name flex">
 <span>def <span class="ident">make_dataloader</span></span>(<span>args: <a title="frx.train.Args" href="#frx.train.Args">Args</a>, dataset, *, is_train: bool)</span>
 </code></dt>
@@ -78,10 +84,10 @@ hljs.highlightAll();
 <dl>
 <dt id="frx.train.Args"><code class="flex name class">
 <span>class <span class="ident">Args</span></span>
-<span>(</span><span>seed: int = 42, p_dropout: float = 0.2, model_d: int = 128, n_layers: int = 6, init_std: float = 0.02, resize_size: int = 256, crop_size: int = 224, n_classes: int = 1000, v2_dir: str = '', batch_size: int = 256, n_workers: int = 4, p_mixup: float = 0.2, pin_memory: bool = False, learning_rate: float = 0.001, beta1: float = 0.9, beta2: float = 0.999, grad_clip: float = 1.0, grad_accum: int = 1, weight_decay: float = 0.0001, n_warmup_steps: int = 10000, n_epochs: int = 90, do_mup: bool = True, mup_base_d: int = 128, log_every: int = 10, track: bool = True, ckpt_dir: str = './checkpoints', tags: list[str] = &lt;factory&gt;)</span>
+<span>(</span><span>seed: int = 42, p_dropout: float = 0.2, model_d: int = 128, n_layers: int = 6, init_std: float = 0.02, resize_size: int = 256, crop_size: int = 224, n_classes: int = 1000, v2_dir: str = '', batch_size: int = 256, n_workers: int = 4, p_mixup: float = 0.2, pin_memory: bool = False, learning_rate: float = 0.001, lr_schedule: Literal[None, 'warmup', 'warmup+cosine-decay'] = 'warmup', n_lr_warmup: int = 10000, beta1: float = 0.9, beta2: float = 0.999, grad_clip: float = 1.0, grad_accum: int = 1, weight_decay: float = 0.0001, n_epochs: int = 90, do_mup: bool = True, mup_base_d: int = 128, log_every: int = 10, track: bool = True, ckpt_dir: str = './checkpoints', tags: list[str] = &lt;factory&gt;)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Args(seed: int = 42, p_dropout: float = 0.2, model_d: int = 128, n_layers: int = 6, init_std: float = 0.02, resize_size: int = 256, crop_size: int = 224, n_classes: int = 1000, v2_dir: str = '', batch_size: int = 256, n_workers: int = 4, p_mixup: float = 0.2, pin_memory: bool = False, learning_rate: float = 0.001, beta1: float = 0.9, beta2: float = 0.999, grad_clip: float = 1.0, grad_accum: int = 1, weight_decay: float = 0.0001, n_warmup_steps: int = 10000, n_epochs: int = 90, do_mup: bool = True, mup_base_d: int = 128, log_every: int = 10, track: bool = True, ckpt_dir: str = './checkpoints', tags: list[str] = <factory>)</p></div>
+<div class="desc"><p>Args(seed: int = 42, p_dropout: float = 0.2, model_d: int = 128, n_layers: int = 6, init_std: float = 0.02, resize_size: int = 256, crop_size: int = 224, n_classes: int = 1000, v2_dir: str = '', batch_size: int = 256, n_workers: int = 4, p_mixup: float = 0.2, pin_memory: bool = False, learning_rate: float = 0.001, lr_schedule: Literal[None, 'warmup', 'warmup+cosine-decay'] = 'warmup', n_lr_warmup: int = 10000, beta1: float = 0.9, beta2: float = 0.999, grad_clip: float = 1.0, grad_accum: int = 1, weight_decay: float = 0.0001, n_epochs: int = 90, do_mup: bool = True, mup_base_d: int = 128, log_every: int = 10, track: bool = True, ckpt_dir: str = './checkpoints', tags: list[str] = <factory>)</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -90,6 +96,7 @@ hljs.highlightAll();
 @dataclasses.dataclass(frozen=True)
 class Args:
     seed: int = 42
+    &#34;&#34;&#34;Random seed.&#34;&#34;&#34;
 
     # Model
     p_dropout: float = 0.2
@@ -121,16 +128,22 @@ class Args:
 
     # Optimization
     learning_rate: float = 0.001
+    &#34;&#34;&#34;peak learning rate.&#34;&#34;&#34;
+    lr_schedule: Schedule = &#34;warmup&#34;
+    &#34;&#34;&#34;what kind of learning rate schedule to use.&#34;&#34;&#34;
+    n_lr_warmup: int = 10_000
+    &#34;&#34;&#34;Number of learning rate warmup steps.&#34;&#34;&#34;
+
     beta1: float = 0.9
     beta2: float = 0.999
     grad_clip: float = 1.0
-    &#34;&#34;&#34;maximum gradient norm. `0` implies no clipping.&#34;&#34;&#34;
+    &#34;&#34;&#34;Maximum gradient norm. `0` implies no clipping.&#34;&#34;&#34;
     grad_accum: int = 1
-    &#34;&#34;&#34;number of steps to accumulate gradients for. `1` implies no accumulation.&#34;&#34;&#34;
+    &#34;&#34;&#34;Number of steps to accumulate gradients for. `1` implies no accumulation.&#34;&#34;&#34;
     weight_decay: float = 0.0001
-    n_warmup_steps: int = 10_000
+
     n_epochs: int = 90
-    &#34;&#34;&#34;number of epochs to train for.&#34;&#34;&#34;
+    &#34;&#34;&#34;Number of epochs to train for.&#34;&#34;&#34;
 
     # muP
     do_mup: bool = True
@@ -176,11 +189,11 @@ class Args:
 </dd>
 <dt id="frx.train.Args.grad_accum"><code class="name">var <span class="ident">grad_accum</span> : int</code></dt>
 <dd>
-<div class="desc"><p>number of steps to accumulate gradients for. <code>1</code> implies no accumulation.</p></div>
+<div class="desc"><p>Number of steps to accumulate gradients for. <code>1</code> implies no accumulation.</p></div>
 </dd>
 <dt id="frx.train.Args.grad_clip"><code class="name">var <span class="ident">grad_clip</span> : float</code></dt>
 <dd>
-<div class="desc"><p>maximum gradient norm. <code>0</code> implies no clipping.</p></div>
+<div class="desc"><p>Maximum gradient norm. <code>0</code> implies no clipping.</p></div>
 </dd>
 <dt id="frx.train.Args.init_std"><code class="name">var <span class="ident">init_std</span> : float</code></dt>
 <dd>
@@ -188,11 +201,15 @@ class Args:
 </dd>
 <dt id="frx.train.Args.learning_rate"><code class="name">var <span class="ident">learning_rate</span> : float</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>peak learning rate.</p></div>
 </dd>
 <dt id="frx.train.Args.log_every"><code class="name">var <span class="ident">log_every</span> : int</code></dt>
 <dd>
 <div class="desc"><p>how often to log metrics.</p></div>
+</dd>
+<dt id="frx.train.Args.lr_schedule"><code class="name">var <span class="ident">lr_schedule</span> : Literal[None, 'warmup', 'warmup+cosine-decay']</code></dt>
+<dd>
+<div class="desc"><p>what kind of learning rate schedule to use.</p></div>
 </dd>
 <dt id="frx.train.Args.model_d"><code class="name">var <span class="ident">model_d</span> : int</code></dt>
 <dd>
@@ -208,15 +225,15 @@ class Args:
 </dd>
 <dt id="frx.train.Args.n_epochs"><code class="name">var <span class="ident">n_epochs</span> : int</code></dt>
 <dd>
-<div class="desc"><p>number of epochs to train for.</p></div>
+<div class="desc"><p>Number of epochs to train for.</p></div>
 </dd>
 <dt id="frx.train.Args.n_layers"><code class="name">var <span class="ident">n_layers</span> : int</code></dt>
 <dd>
 <div class="desc"><p>number of transformer layers.</p></div>
 </dd>
-<dt id="frx.train.Args.n_warmup_steps"><code class="name">var <span class="ident">n_warmup_steps</span> : int</code></dt>
+<dt id="frx.train.Args.n_lr_warmup"><code class="name">var <span class="ident">n_lr_warmup</span> : int</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Number of learning rate warmup steps.</p></div>
 </dd>
 <dt id="frx.train.Args.n_workers"><code class="name">var <span class="ident">n_workers</span> : int</code></dt>
 <dd>
@@ -240,7 +257,7 @@ class Args:
 </dd>
 <dt id="frx.train.Args.seed"><code class="name">var <span class="ident">seed</span> : int</code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Random seed.</p></div>
 </dd>
 <dt id="frx.train.Args.tags"><code class="name">var <span class="ident">tags</span> : list[str]</code></dt>
 <dd>
@@ -304,6 +321,7 @@ class Args:
 <ul class="two-column">
 <li><code><a title="frx.train.compute_loss" href="#frx.train.compute_loss">compute_loss</a></code></li>
 <li><code><a title="frx.train.evaluate" href="#frx.train.evaluate">evaluate</a></code></li>
+<li><code><a title="frx.train.get_lr_schedule" href="#frx.train.get_lr_schedule">get_lr_schedule</a></code></li>
 <li><code><a title="frx.train.make_dataloader" href="#frx.train.make_dataloader">make_dataloader</a></code></li>
 <li><code><a title="frx.train.save" href="#frx.train.save">save</a></code></li>
 <li><code><a title="frx.train.step_model" href="#frx.train.step_model">step_model</a></code></li>
@@ -326,12 +344,13 @@ class Args:
 <li><code><a title="frx.train.Args.init_std" href="#frx.train.Args.init_std">init_std</a></code></li>
 <li><code><a title="frx.train.Args.learning_rate" href="#frx.train.Args.learning_rate">learning_rate</a></code></li>
 <li><code><a title="frx.train.Args.log_every" href="#frx.train.Args.log_every">log_every</a></code></li>
+<li><code><a title="frx.train.Args.lr_schedule" href="#frx.train.Args.lr_schedule">lr_schedule</a></code></li>
 <li><code><a title="frx.train.Args.model_d" href="#frx.train.Args.model_d">model_d</a></code></li>
 <li><code><a title="frx.train.Args.mup_base_d" href="#frx.train.Args.mup_base_d">mup_base_d</a></code></li>
 <li><code><a title="frx.train.Args.n_classes" href="#frx.train.Args.n_classes">n_classes</a></code></li>
 <li><code><a title="frx.train.Args.n_epochs" href="#frx.train.Args.n_epochs">n_epochs</a></code></li>
 <li><code><a title="frx.train.Args.n_layers" href="#frx.train.Args.n_layers">n_layers</a></code></li>
-<li><code><a title="frx.train.Args.n_warmup_steps" href="#frx.train.Args.n_warmup_steps">n_warmup_steps</a></code></li>
+<li><code><a title="frx.train.Args.n_lr_warmup" href="#frx.train.Args.n_lr_warmup">n_lr_warmup</a></code></li>
 <li><code><a title="frx.train.Args.n_workers" href="#frx.train.Args.n_workers">n_workers</a></code></li>
 <li><code><a title="frx.train.Args.p_dropout" href="#frx.train.Args.p_dropout">p_dropout</a></code></li>
 <li><code><a title="frx.train.Args.p_mixup" href="#frx.train.Args.p_mixup">p_mixup</a></code></li>
