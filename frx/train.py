@@ -6,7 +6,6 @@ import sys
 import time
 import typing
 
-import aim
 import beartype
 import chex
 import datasets
@@ -20,7 +19,9 @@ import torchvision.transforms.v2 as transforms
 import tyro
 from jaxtyping import Array, Float, Int, jaxtyped
 
-from . import helpers, mup, vit
+import wandb
+
+from . import helpers, mup, tracking, vit
 
 Schedule = typing.Literal[None, "warmup", "warmup+cosine-decay"]
 
@@ -48,38 +49,39 @@ class Args:
 
     # Data
     resize_size: int = 256
-    """how big to resize images."""
+    """How big to resize images."""
     crop_size: int = 224
-    """after resize, how big an image to crop."""
+    """After resize, how big an image to crop."""
     n_classes: int = 1_000
-    """number of classes (1000 for ImageNet-1K)."""
+    """Number of classes (1000 for ImageNet-1K)."""
     v2_dir: str = ""
     """Where ImageNet-V2 is stored."""
     batch_size: int = 256
-    """train and evaluation batch size."""
+    """Train and evaluation batch size."""
     n_workers: int = 4
-    """number of dataloader workers"""
+    """Number of dataloader workers"""
     p_mixup: float = 0.2
-    """probability of adding MixUp to a batch."""
+    """Probability of adding MixUp to a batch."""
     pin_memory: bool = False
-    """whether to pin memory in the dataloader."""
+    """Whether to pin memory in the dataloader."""
 
     # Optimization
     learning_rate: float = 0.001
-    """peak learning rate."""
+    """Peak learning rate."""
     lr_schedule: Schedule = "warmup"
-    """what kind of learning rate schedule to use."""
+    """What kind of learning rate schedule to use."""
     n_lr_warmup: int = 10_000
     """Number of learning rate warmup steps."""
-
     beta1: float = 0.9
+    """Adam beta1."""
     beta2: float = 0.999
+    """Adam beta2."""
     grad_clip: float = 1.0
     """Maximum gradient norm. `0` implies no clipping."""
     grad_accum: int = 1
     """Number of steps to accumulate gradients for. `1` implies no accumulation."""
     weight_decay: float = 0.0001
-
+    """Weight decay applied to Optax's AdamW optimizer."""
     n_epochs: int = 90
     """Number of epochs to train for."""
 
@@ -294,11 +296,7 @@ def evaluate(model: eqx.Module, dataloader, key: chex.PRNGKey) -> dict[str, obje
 
 
 @beartype.beartype
-def train(args: Args):
-    import os
-
-    print("JAX_PLATFORMS:", os.environ.get("JAX_PLATFORMS", "no value set"))
-    print("logger level:", logger.getEffectiveLevel())
+def train(args: Args) -> str:
     key = jax.random.key(seed=args.seed)
     key, model_key = jax.random.split(key)
 
@@ -395,6 +393,13 @@ def train(args: Args):
 
     # 4. Multi-device training
     n_devices = len(jax.local_devices())
+    logger.info("Training on %d devices.", n_devices)
+
+    if n_devices > 1 and n_devices % 2 != 0:
+        logger.warning(
+            "There are %d devices, which is an odd number for multi-GPU training.",
+            n_devices,
+        )
     # Image batches have four dimensions: batch x channels x width x height. We want to
     # split the batch dimension up over all devices. The same applies to labels, but
     # they only have batch x classes
@@ -409,12 +414,17 @@ def train(args: Args):
     model, state = eqx.filter_shard((model, state), image_sharding.replicate())
 
     # 5. Logging and checkpointing
-    if args.track:
-        run = aim.Run(experiment="train")
-        run["hparams"] = {k: helpers.to_aim_value(v) for k, v in vars(args).items()}
-        run["hparams"]["cmd"] = " ".join([sys.executable] + sys.argv)
-    else:
-        run = helpers.DummyAimRun()
+    mode = "online" if args.track else "disabled"
+    hparams = {k: helpers.to_primitive(v) for k, v in vars(args).items()}
+    hparams["cmd"] = " ".join([sys.executable] + sys.argv)
+    run = wandb.init(
+        project="frx",
+        entity="samuelstevens",
+        config=hparams,
+        tags=args.tags,
+        mode=mode,
+        reinit=True,
+    )
 
     os.makedirs(args.ckpt_dir, exist_ok=True)
 
@@ -442,12 +452,14 @@ def train(args: Args):
                 step_per_sec = global_step / (time.time() - start_time)
                 dt = t1 - t0
                 metrics = {
-                    "train_loss": loss.item(),
-                    "step_per_sec": step_per_sec,
-                    "learning_rate": lr_schedule(global_step // args.grad_accum).item(),
-                    "mfu": flops_per_iter / dt / flops_promised,
+                    "train/loss": loss.item(),
+                    "schedule/learning_rate": lr_schedule(
+                        global_step // args.grad_accum
+                    ).item(),
+                    "perf/step_per_sec": step_per_sec,
+                    "perf/mfu": flops_per_iter / dt / flops_promised,
                 }
-                run.track(metrics, step=global_step)
+                run.log(metrics, step=global_step)
                 logger.info(
                     "step: %d, loss: %.5f, step/sec: %.2f",
                     global_step,
@@ -472,16 +484,24 @@ def train(args: Args):
             key, subkey = jax.random.split(key)
             logger.info("Evaluating %s.", name)
             metrics = evaluate(model, dataloader, subkey)
-            metrics = {f"{name}_{key}": value for key, value in metrics.items()}
-            run.track(metrics, step=global_step)
+            metrics = {f"{name}/{key}": value for key, value in metrics.items()}
+            run.log(metrics, step=global_step)
             logger.info(
                 ", ".join(f"{key}: {value:.3f}" for key, value in metrics.items()),
             )
         # Record epoch at this step only once.
-        run.track({"epoch": epoch}, step=global_step)
+        run.log({"epoch": epoch}, step=global_step)
 
         # Checkpoint.
-        save(os.path.join(args.ckpt_dir, f"{run.hash}_ep{epoch}.eqx"), model_cfg, model)
+        save(os.path.join(args.ckpt_dir, f"{run.id}_ep{epoch}.eqx"), model_cfg, model)
+
+    # At the end of the run:
+    # 1. Save to sqlite storage.
+    # 2. Finish WandB run.
+    # 3. Return WandB run id.
+    tracking.save(run.id, hparams, dict(run.summary))
+    run.finish()
+    return run.id
 
 
 if __name__ == "__main__":

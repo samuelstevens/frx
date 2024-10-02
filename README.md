@@ -18,3 +18,23 @@ Personally, I am also interested in learning more about:
 * Jax, as well as multi-GPU and multi-node training in Jax.
 * muP transfer, including [unit-scaled muP](https://arxiv.org/abs/2407.17465).
 * Large(r)-scale vision training.
+
+## Further Reading
+
+* [This page](https://www.tensorflow.org/extras/candidate_sampling.pdf) describes candidate sampling techniques for classification pre-training with many classes.
+* Generally, "extreme classification" describes classification problems with millions or billions of classes.
+
+## Road Map
+
+1. Demonstrate muP transfer of learning rate and std dev of weight initialization on ImageNet-1K using a model with size 128, 256 and 384 (384 is a ViT-S/16).
+2. Do the same with TreeOfLife-10M.
+3. Experiment with extreme classification methods.
+
+## muP Transfer
+
+To demonstrate that muP transfer actually works, we have to tune the larger model using standard parameterization as well.
+However, we don't want to do this for actually big models--the whole point of muP is to avoid that.
+So we demonstrate that muP works by tuning models with a hidden dimension of 128, 256 and 384 with 12 layers.
+We also do muP tuning on the d=128 model then do zero-shot muP transfer to d=384 and compare it to the manually tuned d=384.
+
+Experimental results are described [here](https://samuelstevens.me/frx/frx/mup) in the docs.

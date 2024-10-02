@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
 <meta name="generator" content="pdoc3 0.11.1">
-<title>frx.mup API documentation</title>
-<meta name="description" content="Utilities for muP transfer …">
+<title>frx.tracking API documentation</title>
+<meta name="description" content="">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/sanitize.min.css" integrity="sha512-y1dtMcuvtTMJc1yPgEqF0ZjQbhnc/bFhyvIyVNb9Zk5mIGtqVaAB1Ttl28su8AvFMOY0EwRbAe+HCLqj6W7/KA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/13.0.0/typography.min.css" integrity="sha512-Y1DYSb995BAfxobCkKepB1BqJJTPrOp3zPL74AWFugHHmmdcvO+C48WLrUOlhGMc0QG7AE3f7gmvvcrmX2fDoA==" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css" crossorigin>
@@ -24,24 +24,9 @@ hljs.highlightAll();
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>frx.mup</code></h1>
+<h1 class="title">Module <code>frx.tracking</code></h1>
 </header>
 <section id="section-intro">
-<p>Utilities for muP transfer.</p>
-<h1 id="motivation">Motivation</h1>
-<p>We want to empirically demonstrate that our muP implementation is correct.
-To do so, we will do both standard hyperparameter tuning (SP) and muP hyperparameter tuning (muP) on three differently sized models up to a ViT-S/16 on ImageNet-1K.
-These are not meant to achieve SOTA results; we merely want to show that muP enables zero-shot hyperparameter transfer to larger models so we don't have to tune larger models (like ViT-L/14).</p>
-<h1 id="experimental-setup">Experimental Setup</h1>
-<p>For each model size of d=128, d=256, d=384, we randomly sample 10 combinations of (1) learning rate and (2) weight initialization stdev.
-The range for each hyperparameter is in <code>experiments/mup-demo/sp-baseline.toml</code>.
-We train for 90 epochs on ImageNet-1K.</p>
-<p>Then we train d=256 and d=384 models using muP transfer rules from d=128 and compare to the manually tuned versions.
-Those configurations are in <code>experiments/mup-demo/mup-transfer.toml</code>.</p>
-<p>Experiments are tagged either <code>sp-baseline</code> or <code>mup-transfer</code> on <a href="https://wandb.ai/samuelstevens/frx">WandB</a>.
-<a href="https://wandb.ai/samuelstevens/frx/reports/muP-Transfer--Vmlldzo5NTgzMDYz">This report</a> contains a nice written summary.</p>
-<h1 id="results">Results</h1>
-<h1 id="discussion">Discussion</h1>
 </section>
 <section>
 </section>
@@ -50,28 +35,143 @@ Those configurations are in <code>experiments/mup-demo/mup-transfer.toml</code>.
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="frx.mup.init"><code class="name flex">
-<span>def <span class="ident">init</span></span>(<span>model: equinox._module.Module, *, std: float, m_d: float, key: jax.Array) ‑> equinox._module.Module</span>
+<dt id="frx.tracking.get_git_dirty"><code class="name flex">
+<span>def <span class="ident">get_git_dirty</span></span>(<span>) ‑> bool</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Re-init all eqx.nn.Linear modules to have weights sampled from $~N(0, std^2 / m_d)$.
-The Eluether <a href="https://blog.eleuther.ai/mutransfer/">post</a> specifies not changing the embedding weight initialization.
-But that's for language.
-For vision, where our inputs are already dense, we want the patch embedding to also be reduced by m_d.</p></div>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.get_git_hash"><code class="name flex">
+<span>def <span class="ident">get_git_hash</span></span>(<span>) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.load_by_tag"><code class="name flex">
+<span>def <span class="ident">load_by_tag</span></span>(<span>tag: str) ‑> list[<a title="frx.tracking.Experiment" href="#frx.tracking.Experiment">Experiment</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.save"><code class="name flex">
+<span>def <span class="ident">save</span></span>(<span>exp_id: str, config: dict[str, object], data: dict[str, object]) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
 </dd>
 </dl>
 </section>
 <section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="frx.tracking.Experiment"><code class="flex name class">
+<span>class <span class="ident">Experiment</span></span>
+<span>(</span><span>id: str, config: dict[str, object], data: dict[str, object], argv: list[str], git_hash: str, git_dirty: bool, posix_time: int, hostname: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Experiment(id: str, config: dict[str, object], data: dict[str, object], argv: list[str], git_hash: str, git_dirty: bool, posix_time: int, hostname: str)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@dataclasses.dataclass(frozen=True)
+class Experiment:
+    id: str
+    config: dict[str, object]
+    data: dict[str, object]
+    # For reproducibility
+    argv: list[str]
+    git_hash: str
+    git_dirty: bool
+    posix_time: int
+    hostname: str
+
+    @classmethod
+    def new(
+        cls, id: str, config: dict[str, object], data: dict[str, object]
+    ) -&gt; typing.Self:
+        argv = [sys.executable] + sys.argv
+        git_hash = get_git_hash()
+        git_dirty = get_git_dirty()
+        posix_time = int(time.time())
+        hostname = socket.gethostname()
+        return cls(id, config, data, argv, git_hash, git_dirty, posix_time, hostname)
+
+    def to_sql_values(self):
+        config_json = json.dumps(self.config, separators=(&#34;,&#34;, &#34;:&#34;))
+        data_json = json.dumps(self.data, separators=(&#34;,&#34;, &#34;:&#34;))
+        argv_json = json.dumps(self.argv, separators=(&#34;,&#34;, &#34;:&#34;))
+        return (
+            self.id,
+            config_json,
+            data_json,
+            argv_json,
+            self.git_hash,
+            int(self.git_dirty),
+            self.posix_time,
+            self.hostname,
+        )</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="frx.tracking.Experiment.argv"><code class="name">var <span class="ident">argv</span> : list[str]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.Experiment.config"><code class="name">var <span class="ident">config</span> : dict[str, object]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.Experiment.data"><code class="name">var <span class="ident">data</span> : dict[str, object]</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.Experiment.git_dirty"><code class="name">var <span class="ident">git_dirty</span> : bool</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.Experiment.git_hash"><code class="name">var <span class="ident">git_hash</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.Experiment.hostname"><code class="name">var <span class="ident">hostname</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.Experiment.id"><code class="name">var <span class="ident">id</span> : str</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="frx.tracking.Experiment.posix_time"><code class="name">var <span class="ident">posix_time</span> : int</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="frx.tracking.Experiment.new"><code class="name flex">
+<span>def <span class="ident">new</span></span>(<span>id: str, config: dict[str, object], data: dict[str, object]) ‑> Self</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="frx.tracking.Experiment.to_sql_values"><code class="name flex">
+<span>def <span class="ident">to_sql_values</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
 </section>
 </article>
 <nav id="sidebar">
 <div class="toc">
-<ul>
-<li><a href="#motivation">Motivation</a></li>
-<li><a href="#experimental-setup">Experimental Setup</a></li>
-<li><a href="#results">Results</a></li>
-<li><a href="#discussion">Discussion</a></li>
-</ul>
+<ul></ul>
 </div>
 <ul id="index">
 <li><h3>Super-module</h3>
@@ -81,7 +181,29 @@ For vision, where our inputs are already dense, we want the patch embedding to a
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="frx.mup.init" href="#frx.mup.init">init</a></code></li>
+<li><code><a title="frx.tracking.get_git_dirty" href="#frx.tracking.get_git_dirty">get_git_dirty</a></code></li>
+<li><code><a title="frx.tracking.get_git_hash" href="#frx.tracking.get_git_hash">get_git_hash</a></code></li>
+<li><code><a title="frx.tracking.load_by_tag" href="#frx.tracking.load_by_tag">load_by_tag</a></code></li>
+<li><code><a title="frx.tracking.save" href="#frx.tracking.save">save</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="frx.tracking.Experiment" href="#frx.tracking.Experiment">Experiment</a></code></h4>
+<ul class="two-column">
+<li><code><a title="frx.tracking.Experiment.argv" href="#frx.tracking.Experiment.argv">argv</a></code></li>
+<li><code><a title="frx.tracking.Experiment.config" href="#frx.tracking.Experiment.config">config</a></code></li>
+<li><code><a title="frx.tracking.Experiment.data" href="#frx.tracking.Experiment.data">data</a></code></li>
+<li><code><a title="frx.tracking.Experiment.git_dirty" href="#frx.tracking.Experiment.git_dirty">git_dirty</a></code></li>
+<li><code><a title="frx.tracking.Experiment.git_hash" href="#frx.tracking.Experiment.git_hash">git_hash</a></code></li>
+<li><code><a title="frx.tracking.Experiment.hostname" href="#frx.tracking.Experiment.hostname">hostname</a></code></li>
+<li><code><a title="frx.tracking.Experiment.id" href="#frx.tracking.Experiment.id">id</a></code></li>
+<li><code><a title="frx.tracking.Experiment.new" href="#frx.tracking.Experiment.new">new</a></code></li>
+<li><code><a title="frx.tracking.Experiment.posix_time" href="#frx.tracking.Experiment.posix_time">posix_time</a></code></li>
+<li><code><a title="frx.tracking.Experiment.to_sql_values" href="#frx.tracking.Experiment.to_sql_values">to_sql_values</a></code></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

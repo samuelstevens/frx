@@ -1,3 +1,9 @@
+"""
+Utilities for muP transfer.
+
+.. include::./mup-experiment.md
+"""
+
 import chex
 import equinox as eqx
 import jax
@@ -6,7 +12,7 @@ import jax.numpy as jnp
 
 def init(model: eqx.Module, *, std: float, m_d: float, key: chex.PRNGKey) -> eqx.Module:
     """
-    Re-init all eqx.nn.Linear modules to have weights sampled from ~N(0, std^2 / m_d).
+    Re-init all eqx.nn.Linear modules to have weights sampled from $~N(0, std^2 / m_d)$.
     The Eluether [post](https://blog.eleuther.ai/mutransfer/) specifies not changing the embedding weight initialization.
     But that's for language.
     For vision, where our inputs are already dense, we want the patch embedding to also be reduced by m_d.

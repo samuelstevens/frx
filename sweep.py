@@ -1,5 +1,5 @@
 """
-Launch script to kick off a hyperparameter sweep using muP and a Slurm cluster (with submitit).
+Launch script to kick off a hyperparameter sweep using a Slurm cluster (with submitit).
 """
 
 import collections.abc
@@ -67,10 +67,8 @@ def main(
     for i, config in enumerate(configs):
         try:
             args = frx.train.Args(**config)
-            # Want to apply a different seed to each config and ensure we are using muP.
-            args = dataclasses.replace(
-                args, seed=i, do_mup=True, mup_base_d=args.model_d
-            )
+            # Want to apply a different seed to each config.
+            args = dataclasses.replace(args, seed=i)
             sweep_args.append(args)
         except Exception as err:
             errs.append(str(err))
