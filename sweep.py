@@ -12,6 +12,7 @@ import typing
 import beartype
 import jax
 import jax.numpy as jnp
+import chex
 import submitit
 import tyro
 
@@ -215,7 +216,7 @@ def roberts_sequence(
     root_iters: int = 10_000,
     complement_basis: bool = True,
     perturb: bool = True,
-    key: jax.typing.ArrayLike | None = None,
+    key: chex.PRNGKey | None = None,
     dtype=float,
 ):
     """
@@ -224,19 +225,19 @@ def roberts_sequence(
     Reference:
     Martin Roberts. The Unreasonable Effectiveness of Quasirandom Sequences.
     extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences
-    Args:
-      num_points: Number of points to return.
-      dim: The dimensionality of each point in the sequence.
-      root_iters: Number of iterations to use to find the root.
-      complement_basis: Complement the basis to improve precision, as described
-        in https://www.martysmods.com/a-better-r2-sequence.
-      key: a PRNG key.
-      dtype: optional, a float dtype for the returned values (default float64 if
-        jax_enable_x64 is true, otherwise float32).
-    Returns:
-      An array of shape (num_points, dim) containing the sequence.
 
     From https://github.com/jax-ml/jax/pull/23808
+
+    Args:
+        num_points: Number of points to return.
+        dim: The dimensionality of each point in the sequence.
+        root_iters: Number of iterations to use to find the root.
+        complement_basis: Complement the basis to improve precision, as described in https://www.martysmods.com/a-better-r2-sequence.
+        key: a PRNG key.
+        dtype: optional, a float dtype for the returned values (default float64 if jax_enable_x64 is true, otherwise float32).
+    Returns:
+        An array of shape (num_points, dim) containing the sequence.
+
     """
 
     def f(x):
